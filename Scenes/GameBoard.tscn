@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://kel17x62c5pw"]
+
+[ext_resource type="Texture2D" uid="uid://b04n640myedat" path="res://Assets/TribalDynamicsBoard.png" id="1_8jtmx"]
+
+[node name="GameBoard" type="Node2D"]
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 522.0
+offset_bottom = 393.0
+
+[node name="Sprite2D" type="Sprite2D" parent="Control"]
+position = Vector2(261, 196.5)
+scale = Vector2(1, 1.00769)
+texture = ExtResource("1_8jtmx")

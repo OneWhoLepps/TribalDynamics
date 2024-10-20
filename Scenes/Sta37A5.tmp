@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://clek28akpq1pr"]
+
+[ext_resource type="Script" path="res://Scripts/StartMenu.gd" id="1_11uo5"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_11uo5")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 330.0
+offset_bottom = 403.0
+script = ExtResource("1_11uo5")
+
+[node name="HostGameButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 3.05176e-05
+offset_right = 94.0
+offset_bottom = 31.0
+scale = Vector2(3.50132, 3.52676)
+text = "Host Game"
+
+[node name="JoinGameButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_top = 149.0
+offset_right = 105.0
+offset_bottom = 180.0
+scale = Vector2(3.12671, 3.03538)
+text = "Join Game"
+
+[node name="ExitButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 3.05176e-05
+offset_top = 292.0
+offset_right = 59.0
+offset_bottom = 323.0
+scale = Vector2(5.59196, 3.56608)
+text = "Exit"
+
+[connection signal="pressed" from="Control/HostGameButton" to="Control" method="_on_host_game_button_pressed"]
+[connection signal="pressed" from="Control/ExitButton" to="Control" method="_exit_tree"]
