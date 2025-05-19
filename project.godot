@@ -11,15 +11,10 @@ config_version=5
 [application]
 
 config/name="Tribal Dynamics"
-run/main_scene="res://Scenes/StartMenu.tscn"
+run/main_scene="res://Scenes/TutorialLobbyScene.tscn"
 config/features=PackedStringArray("4.2", "GL Compatibility")
 config/icon="res://Assets/icon.svg"
 
 [autoload]
 
-Lobby="*res://Scripts/Lobby.gd"
-
-[rendering]
-
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+GameManager="*res://Scripts/GameManager.gd"
