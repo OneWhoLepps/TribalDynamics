@@ -45,9 +45,9 @@ func assign_buttons_to_players():
 	for i in range(min(ids.size(), color_button_map.size())):
 		var player_id = ids[i]
 
-		if player_id != multiplayer.get_unique_id():
+		if player_id == multiplayer.get_unique_id():
 			for btn in color_button_map[i]:
-				btn.disabled = true
+				btn.disabled = false
 
 func connect_buttons(group_name):
 	var group_node = $group_name # Use $RedButtons, etc.

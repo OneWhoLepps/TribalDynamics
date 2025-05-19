@@ -87,20 +87,26 @@ offset_left = 117.0
 offset_top = -24.0
 offset_right = 160.0
 offset_bottom = -1.0
+disabled = true
 
 [node name="ButtonRoB" type="Button" parent="PlayerRed"]
+layout_mode = 0
 offset_left = -38.0
 offset_top = 79.0
 offset_right = 5.0
 offset_bottom = 102.0
+disabled = true
 
 [node name="ButtonRoG" type="Button" parent="PlayerRed"]
+layout_mode = 0
 offset_left = 202.0
 offset_top = 67.0
 offset_right = 245.0
 offset_bottom = 90.0
+disabled = true
 
 [node name="LabelBlueHP" type="Label" parent="PlayerRed"]
+layout_mode = 0
 offset_left = -38.0
 offset_top = 5.0
 offset_right = -5.0
@@ -121,24 +127,31 @@ offset_right = 55.0
 offset_bottom = 44.0
 
 [node name="ButtonGoB" type="Button" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = -100.0
 offset_top = 33.0
 offset_right = -57.0
 offset_bottom = 56.0
+disabled = true
 
 [node name="ButtonGoR" type="Button" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = -214.0
 offset_top = -67.0
 offset_right = -171.0
 offset_bottom = -44.0
+disabled = true
 
 [node name="ButtonGoY" type="Button" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = 51.0
 offset_top = -90.0
 offset_right = 94.0
 offset_bottom = -67.0
+disabled = true
 
 [node name="LabelGreenHP" type="Label" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = 167.0
 offset_top = 5.0
 offset_right = 200.0
@@ -158,24 +171,31 @@ offset_right = 55.0
 offset_bottom = 33.0
 
 [node name="ButtonYoR" type="Button" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = -100.0
 offset_top = -24.0
 offset_right = -57.0
 offset_bottom = -1.0
+disabled = true
 
 [node name="ButtonYoG" type="Button" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = 51.0
 offset_top = 79.0
 offset_right = 94.0
 offset_bottom = 102.0
+disabled = true
 
 [node name="ButtonYoB" type="Button" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = -214.0
 offset_top = 67.0
 offset_right = -171.0
 offset_bottom = 90.0
+disabled = true
 
 [node name="LabelYellowHP" type="Label" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = 167.0
 offset_top = 5.0
 offset_right = 200.0
@@ -196,22 +216,28 @@ offset_right = 55.0
 offset_bottom = 33.0
 
 [node name="ButtonBoR" type="Button" parent="PlayerBlue"]
+layout_mode = 0
 offset_left = -38.0
 offset_top = -90.0
 offset_right = 5.0
 offset_bottom = -67.0
+disabled = true
 
 [node name="ButtonBoG" type="Button" parent="PlayerBlue"]
+layout_mode = 0
 offset_left = 117.0
 offset_top = 33.0
 offset_right = 160.0
 offset_bottom = 56.0
+disabled = true
 
 [node name="ButtonBoY" type="Button" parent="PlayerBlue"]
+layout_mode = 0
 offset_left = 202.0
 offset_top = -67.0
 offset_right = 245.0
 offset_bottom = -44.0
+disabled = true
 
 [node name="LabelBlueHP" type="Label" parent="PlayerBlue"]
 layout_mode = 0
