@@ -71,17 +71,16 @@ offset_right = 725.0
 offset_bottom = 54.0
 
 [node name="PortTextField" type="LineEdit" parent="."]
-offset_left = 750.0
-offset_top = 23.0
-offset_right = 988.0
-offset_bottom = 54.0
+offset_left = 487.0
+offset_top = 67.0
+offset_right = 725.0
+offset_bottom = 98.0
 
 [node name="ReadonlyChatbox" type="ItemList" parent="."]
 layout_mode = 0
-offset_left = 639.0
-offset_top = 67.0
-offset_right = 942.0
-offset_bottom = 179.0
+offset_left = 796.0
+offset_right = 1301.0
+offset_bottom = 112.0
 
 [connection signal="button_down" from="HostGame" to="." method="_on_host_game_button_down"]
 [connection signal="button_down" from="JoinGame" to="." method="_on_join_game_button_down"]

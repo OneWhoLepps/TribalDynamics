@@ -8,57 +8,57 @@ script/source = "# Four Player Board Game Logic in Godot (GDScript)
 
 extends Control
 
-# Store player numbers and turn status
-var player_numbers := [0, 0, 0, 0] # One number per player
-var player_turns_done := [false, false, false, false] # One flag per player
-
-# References to UI labels for numbers
-var number_labels := [
-	$Player1/NumberLabel,
-	$Player2/NumberLabel,
-	$Player3/NumberLabel,
-	$Player4/NumberLabel
-]
-
-# Called when a player's increment button is pressed
-func _on_Increment_pressed(player_id: int) -> void:
-	if player_turns_done[player_id]:
-		return # Player can't increment after ending their turn
-
-	player_numbers[player_id] += 1
-	number_labels[player_id].text = \"?\" # Keep hidden until all are done
-
-# Called when a player's end turn button is pressed
-func _on_EndTurn_pressed(player_id: int) -> void:
-	if player_turns_done[player_id]:
-		return # Ignore if already ended
-
-	player_turns_done[player_id] = true
-	$Player1/EndTurn.disabled = true
-	$Player2/EndTurn.disabled = true
-	$Player3/EndTurn.disabled = true
-	$Player4/EndTurn.disabled = true
-
-	# Re-enable others who haven't ended yet
-	for i in range(4):
-		if not player_turns_done[i]:
-			get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = false
-
-	if all_players_done():
-		reveal_numbers()
-
-func all_players_done() -> bool:
-	for done in player_turns_done:
-		if not done:
-			return false
-	return true
-
-func reveal_numbers():
-	for i in range(4):
-		number_labels[i].text = str(player_numbers[i])
-		get_node(\"Player%d/Increment\" % (i + 1)).disabled = true
-		get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = true
-
+## Store player numbers and turn status
+#var player_numbers := [0, 0, 0, 0] # One number per player
+#var player_turns_done := [false, false, false, false] # One flag per player
+#
+## References to UI labels for numbers
+#var number_labels := [
+	#$Player1/NumberLabel,
+	#$Player2/NumberLabel,
+	#$Player3/NumberLabel,
+	#$Player4/NumberLabel
+#]
+#
+## Called when a player's increment button is pressed
+#func _on_Increment_pressed(player_id: int) -> void:
+	#if player_turns_done[player_id]:
+		#return # Player can't increment after ending their turn
+#
+	#player_numbers[player_id] += 1
+	#number_labels[player_id].text = \"?\" # Keep hidden until all are done
+#
+## Called when a player's end turn button is pressed
+#func _on_EndTurn_pressed(player_id: int) -> void:
+	#if player_turns_done[player_id]:
+		#return # Ignore if already ended
+#
+	#player_turns_done[player_id] = true
+	#$Player1/EndTurn.disabled = true
+	#$Player2/EndTurn.disabled = true
+	#$Player3/EndTurn.disabled = true
+	#$Player4/EndTurn.disabled = true
+#
+	## Re-enable others who haven't ended yet
+	#for i in range(4):
+		#if not player_turns_done[i]:
+			#get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = false
+#
+	#if all_players_done():
+		#reveal_numbers()
+#
+#func all_players_done() -> bool:
+	#for done in player_turns_done:
+		#if not done:
+			#return false
+	#return true
+#
+#func reveal_numbers():
+	#for i in range(4):
+		#number_labels[i].text = str(player_numbers[i])
+		#get_node(\"Player%d/Increment\" % (i + 1)).disabled = true
+		#get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = true
+#
 
 
 func _on_button_down():

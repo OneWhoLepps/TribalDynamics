@@ -1,11 +1,16 @@
 extends Node
 
+#this is a dictionary
 var Players = {}
+#this is list of messages to go into chatbox
 var Chatbox = []
 
+enum {RED, BLUE, YELLOW, GREEN}
+var OpenColors = [BLUE, YELLOW, GREEN]
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass
+
 
 
 @rpc("any_peer")

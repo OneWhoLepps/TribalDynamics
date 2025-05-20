@@ -28,7 +28,20 @@ func _on_host_game_button_down():
 	start_button.disabled = false
 
 	var my_id = multiplayer.get_unique_id()
-	SendPlayerInformation(name_input.text, my_id)
+	HostGame(name_input.text, my_id, GameManager.RED)
+
+func HostGame(name, id, color):
+	if !GameManager.Players.has(id):
+		GameManager.Players[id] = {
+			"name": name,
+			 "id": id,
+			 "color": color,
+			 "health": 10
+			}
+
+		var message = "%s has joined the lobby with color %s." % [name, color]
+		GameManager.Chatbox.append(message)
+		refresh_chatbox()
 
 func _on_join_game_button_down():
 	peer = ENetMultiplayerPeer.new()
@@ -44,6 +57,10 @@ func StartGame():
 	var scene = load("res://Scenes/GameBoard.tscn").instantiate()
 	get_tree().root.add_child(scene)
 
+@rpc("any_peer", "call_local")
+func RemoveColorFromUnassignedList():
+	GameManager.OpenColors.pop_front()
+
 func peer_connected(id):
 	print("Player Connected: ", id)
 
@@ -53,37 +70,77 @@ func peer_disconnected(id):
 func connected_to_server():
 	print("Connected to server!")
 	var my_id = multiplayer.get_unique_id()
-	SendPlayerInformation.rpc_id(1, name_input.text, my_id)
+	#call request join on host client
+	RequestJoin.rpc_id(1, name_input.text, multiplayer.get_unique_id())
 
 @rpc("any_peer")
-func SendPlayerInformation(name: String, id: int):
-	if !GameManager.Players.has(id):
-		GameManager.Players[id] = {"name": name, "id": id}
-		var message = "%s has joined the lobby." % name
-		GameManager.Chatbox.append(message)
-		refresh_chatbox()
+func RequestJoin(name: String, id: int):
+	if !multiplayer.is_server():
+		return
+		
+	if GameManager.OpenColors.is_empty():
+		print("No colors left!")
+		return
 
-		# Broadcast to all players
-		AddChatMessage.rpc(message)
+	#server pops a color
+	var assigned_color = GameManager.OpenColors[0]
+	GameManager.OpenColors.pop_front()
 
-		# Also send full chat history to the new player
-		if multiplayer.is_server():
-			SendFullChatHistory.rpc_id(id, GameManager.Chatbox)
-
-@rpc("any_peer")
-func AddChatMessage(message: String):
-	GameManager.Chatbox.append(message)
-	refresh_chatbox()
+	#server adds join message to its own chatbox 
+	#and adds player to its playerlist
+	var join_msg = "%s has joined the lobby with color %s." % [name, assigned_color]
+	GameManager.Chatbox.append(join_msg)
+	AddPlayerToGameManager(id, name, assigned_color)
+	
+	#clients call requestjoin, and server executes
+	
+	#send server chat history to client that calls this
+	SendFullChatHistory.rpc(GameManager.Chatbox)
+	#update server's chathistory
+	UpdateChatHistory(GameManager.Chatbox)
+	
+	
+	SendAvailableColors.rpc(GameManager.OpenColors)
+	SendAllPlayerData.rpc(GameManager.Players)
 
 @rpc("authority")
 func SendFullChatHistory(history: Array):
+	UpdateChatHistory(history)
+	
+@rpc("authority")
+func SendAllPlayerData(players: Dictionary):
+	_sync_all_players(players)
+
+@rpc("authority")
+func SendAvailableColors(colors: Array):
+	GameManager.OpenColors = colors.duplicate()
+
+@rpc("any_peer")
+func SendPlayerInformation(name: String, id: int, color: int):
+	AddPlayerToGameManager(id, name, color)
+
+func UpdateChatHistory(history: Array):
 	GameManager.Chatbox = history.duplicate()
 	refresh_chatbox()
 
-func add_chat_message(message: String):
-	GameManager.Chatbox.append(message)
-	AddChatMessage.rpc(message)
-	refresh_chatbox()
+func AddPlayerToGameManager(id: int, name: String, color: int):
+	GameManager.Players[id] = {
+		"name": name,
+		"id": id,
+		"color": color,
+		"health": 10
+	}
+
+func _sync_all_players(players: Dictionary):
+	GameManager.Players.clear()
+	for id in players:
+		var player = players[id]
+		GameManager.Players[id] = {
+			"name": player["name"],
+			"id": player["id"],
+			"color": player["color"],
+			"health": player["health"]
+		}
 
 func refresh_chatbox():
 	chatbox.clear()
