@@ -8,57 +8,57 @@ script/source = "# Four Player Board Game Logic in Godot (GDScript)
 
 extends Control
 
-# Store player numbers and turn status
-var player_numbers := [0, 0, 0, 0] # One number per player
-var player_turns_done := [false, false, false, false] # One flag per player
-
-# References to UI labels for numbers
-var number_labels := [
-	$Player1/NumberLabel,
-	$Player2/NumberLabel,
-	$Player3/NumberLabel,
-	$Player4/NumberLabel
-]
-
-# Called when a player's increment button is pressed
-func _on_Increment_pressed(player_id: int) -> void:
-	if player_turns_done[player_id]:
-		return # Player can't increment after ending their turn
-
-	player_numbers[player_id] += 1
-	number_labels[player_id].text = \"?\" # Keep hidden until all are done
-
-# Called when a player's end turn button is pressed
-func _on_EndTurn_pressed(player_id: int) -> void:
-	if player_turns_done[player_id]:
-		return # Ignore if already ended
-
-	player_turns_done[player_id] = true
-	$Player1/EndTurn.disabled = true
-	$Player2/EndTurn.disabled = true
-	$Player3/EndTurn.disabled = true
-	$Player4/EndTurn.disabled = true
-
-	# Re-enable others who haven't ended yet
-	for i in range(4):
-		if not player_turns_done[i]:
-			get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = false
-
-	if all_players_done():
-		reveal_numbers()
-
-func all_players_done() -> bool:
-	for done in player_turns_done:
-		if not done:
-			return false
-	return true
-
-func reveal_numbers():
-	for i in range(4):
-		number_labels[i].text = str(player_numbers[i])
-		get_node(\"Player%d/Increment\" % (i + 1)).disabled = true
-		get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = true
-
+## Store player numbers and turn status
+#var player_numbers := [0, 0, 0, 0] # One number per player
+#var player_turns_done := [false, false, false, false] # One flag per player
+#
+## References to UI labels for numbers
+#var number_labels := [
+	#$Player1/NumberLabel,
+	#$Player2/NumberLabel,
+	#$Player3/NumberLabel,
+	#$Player4/NumberLabel
+#]
+#
+## Called when a player's increment button is pressed
+#func _on_Increment_pressed(player_id: int) -> void:
+	#if player_turns_done[player_id]:
+		#return # Player can't increment after ending their turn
+#
+	#player_numbers[player_id] += 1
+	#number_labels[player_id].text = \"?\" # Keep hidden until all are done
+#
+## Called when a player's end turn button is pressed
+#func _on_EndTurn_pressed(player_id: int) -> void:
+	#if player_turns_done[player_id]:
+		#return # Ignore if already ended
+#
+	#player_turns_done[player_id] = true
+	#$Player1/EndTurn.disabled = true
+	#$Player2/EndTurn.disabled = true
+	#$Player3/EndTurn.disabled = true
+	#$Player4/EndTurn.disabled = true
+#
+	## Re-enable others who haven't ended yet
+	#for i in range(4):
+		#if not player_turns_done[i]:
+			#get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = false
+#
+	#if all_players_done():
+		#reveal_numbers()
+#
+#func all_players_done() -> bool:
+	#for done in player_turns_done:
+		#if not done:
+			#return false
+	#return true
+#
+#func reveal_numbers():
+	#for i in range(4):
+		#number_labels[i].text = str(player_numbers[i])
+		#get_node(\"Player%d/Increment\" % (i + 1)).disabled = true
+		#get_node(\"Player%d/EndTurn\" % (i + 1)).disabled = true
+#
 
 
 func _on_button_down():
@@ -87,20 +87,26 @@ offset_left = 117.0
 offset_top = -24.0
 offset_right = 160.0
 offset_bottom = -1.0
+disabled = true
 
 [node name="ButtonRoB" type="Button" parent="PlayerRed"]
+layout_mode = 0
 offset_left = -38.0
 offset_top = 79.0
 offset_right = 5.0
 offset_bottom = 102.0
+disabled = true
 
 [node name="ButtonRoG" type="Button" parent="PlayerRed"]
+layout_mode = 0
 offset_left = 202.0
 offset_top = 67.0
 offset_right = 245.0
 offset_bottom = 90.0
+disabled = true
 
 [node name="LabelBlueHP" type="Label" parent="PlayerRed"]
+layout_mode = 0
 offset_left = -38.0
 offset_top = 5.0
 offset_right = -5.0
@@ -121,24 +127,31 @@ offset_right = 55.0
 offset_bottom = 44.0
 
 [node name="ButtonGoB" type="Button" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = -100.0
 offset_top = 33.0
 offset_right = -57.0
 offset_bottom = 56.0
+disabled = true
 
 [node name="ButtonGoR" type="Button" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = -214.0
 offset_top = -67.0
 offset_right = -171.0
 offset_bottom = -44.0
+disabled = true
 
 [node name="ButtonGoY" type="Button" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = 51.0
 offset_top = -90.0
 offset_right = 94.0
 offset_bottom = -67.0
+disabled = true
 
 [node name="LabelGreenHP" type="Label" parent="PlayerGreen"]
+layout_mode = 0
 offset_left = 167.0
 offset_top = 5.0
 offset_right = 200.0
@@ -158,24 +171,31 @@ offset_right = 55.0
 offset_bottom = 33.0
 
 [node name="ButtonYoR" type="Button" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = -100.0
 offset_top = -24.0
 offset_right = -57.0
 offset_bottom = -1.0
+disabled = true
 
 [node name="ButtonYoG" type="Button" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = 51.0
 offset_top = 79.0
 offset_right = 94.0
 offset_bottom = 102.0
+disabled = true
 
 [node name="ButtonYoB" type="Button" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = -214.0
 offset_top = 67.0
 offset_right = -171.0
 offset_bottom = 90.0
+disabled = true
 
 [node name="LabelYellowHP" type="Label" parent="PlayerYellow"]
+layout_mode = 0
 offset_left = 167.0
 offset_top = 5.0
 offset_right = 200.0
@@ -196,22 +216,28 @@ offset_right = 55.0
 offset_bottom = 33.0
 
 [node name="ButtonBoR" type="Button" parent="PlayerBlue"]
+layout_mode = 0
 offset_left = -38.0
 offset_top = -90.0
 offset_right = 5.0
 offset_bottom = -67.0
+disabled = true
 
 [node name="ButtonBoG" type="Button" parent="PlayerBlue"]
+layout_mode = 0
 offset_left = 117.0
 offset_top = 33.0
 offset_right = 160.0
 offset_bottom = 56.0
+disabled = true
 
 [node name="ButtonBoY" type="Button" parent="PlayerBlue"]
+layout_mode = 0
 offset_left = 202.0
 offset_top = -67.0
 offset_right = 245.0
 offset_bottom = -44.0
+disabled = true
 
 [node name="LabelBlueHP" type="Label" parent="PlayerBlue"]
 layout_mode = 0
