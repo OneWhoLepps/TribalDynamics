@@ -6,6 +6,8 @@ extends Control
 @onready var chatbox = $ReadonlyChatbox
 @onready var name_input = $LineEdit
 @onready var start_button = $StartGame
+@onready var ip_input = $IPTextField
+
 
 var peer
 
@@ -45,7 +47,9 @@ func HostGame(name, id, color):
 
 func _on_join_game_button_down():
 	peer = ENetMultiplayerPeer.new()
-	peer.create_client(Address, port)
+	#swap to this when debugging
+	#peer.create_client(Address, port)
+	peer.create_client(ip_input.text, port)
 	peer.get_host().compress(ENetConnection.COMPRESS_RANGE_CODER)
 	multiplayer.set_multiplayer_peer(peer)
 
@@ -126,7 +130,6 @@ func UpdateChatHistory(history: Array):
 func AddPlayerToGameManager(id: int, name: String, color: int):
 	GameManager.Players[id] = {
 		"name": name,
-		"id": id,
 		"color": color,
 		"health": 10
 	}
@@ -137,7 +140,6 @@ func _sync_all_players(players: Dictionary):
 		var player = players[id]
 		GameManager.Players[id] = {
 			"name": player["name"],
-			"id": player["id"],
 			"color": player["color"],
 			"health": player["health"]
 		}

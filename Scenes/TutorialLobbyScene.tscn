@@ -57,24 +57,19 @@ rotation = -0.00103556
 text = "Name:"
 
 [node name="IPandPortLabel" type="Label" parent="."]
-offset_left = 409.0
-offset_top = 23.0
-offset_right = 477.0
-offset_bottom = 46.0
+offset_left = 355.0
+offset_top = 29.0
+offset_right = 533.0
+offset_bottom = 52.0
 rotation = -0.00103556
-text = "IP & Port"
+text = "Host IP to connect to:"
+autowrap_mode = 2
 
 [node name="IPTextField" type="LineEdit" parent="."]
-offset_left = 487.0
-offset_top = 23.0
-offset_right = 725.0
-offset_bottom = 54.0
-
-[node name="PortTextField" type="LineEdit" parent="."]
-offset_left = 487.0
-offset_top = 67.0
-offset_right = 725.0
-offset_bottom = 98.0
+offset_left = 524.0
+offset_top = 29.0
+offset_right = 762.0
+offset_bottom = 60.0
 
 [node name="ReadonlyChatbox" type="ItemList" parent="."]
 layout_mode = 0
