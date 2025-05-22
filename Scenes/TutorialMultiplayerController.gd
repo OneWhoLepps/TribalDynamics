@@ -131,7 +131,8 @@ func AddPlayerToGameManager(id: int, name: String, color: int):
 	GameManager.Players[id] = {
 		"name": name,
 		"color": color,
-		"health": 10
+		"health": 10,
+		"unitsStored": 3
 	}
 
 func _sync_all_players(players: Dictionary):

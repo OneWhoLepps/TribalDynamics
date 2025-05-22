@@ -57,6 +57,7 @@ rotation = -0.00103556
 text = "Name:"
 
 [node name="IPandPortLabel" type="Label" parent="."]
+layout_mode = 0
 offset_left = 355.0
 offset_top = 29.0
 offset_right = 533.0
@@ -66,6 +67,7 @@ text = "Host IP to connect to:"
 autowrap_mode = 2
 
 [node name="IPTextField" type="LineEdit" parent="."]
+layout_mode = 0
 offset_left = 524.0
 offset_top = 29.0
 offset_right = 762.0

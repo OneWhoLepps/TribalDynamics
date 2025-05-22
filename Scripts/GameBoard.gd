@@ -1,47 +1,61 @@
 extends Node
 
-var RedPlayerButtons
-var BluePlayerButtons
-var GreenPlayerButtons
-var YellowPlayerButtons
-var ButtonDictionary
+var RedPlayerUI
+var BluePlayerUI
+var GreenPlayerUI
+var YellowPlayerUI
+var UIDictionary
+var PlayernameTextDictionary
+var PlayerHpLabelDictionary
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	RedPlayerButtons = [
+	RedPlayerUI = [
 		$PlayerRed/ButtonRoY, 
 		$PlayerRed/ButtonRoB, 
-		$PlayerRed/ButtonRoG
+		$PlayerRed/ButtonRoG,
+		$PlayerRed/StoredUnitCountRed
 	]
-	BluePlayerButtons = [
+	BluePlayerUI = [
 		$PlayerBlue/ButtonBoY, 
 		$PlayerBlue/ButtonBoR, 
-		$PlayerBlue/ButtonBoG
+		$PlayerBlue/ButtonBoG,
+		$PlayerBlue/StoredUnitCountBlue
 		]
-	GreenPlayerButtons = [
+	GreenPlayerUI = [
 		$PlayerGreen/ButtonGoY, 
 		$PlayerGreen/ButtonGoB, 
-		$PlayerGreen/ButtonGoR
+		$PlayerGreen/ButtonGoR,
+		$PlayerGreen/StoredUnitCountGreen
 	]
-	YellowPlayerButtons = [
+	YellowPlayerUI = [
 		$PlayerYellow/ButtonYoR, 
 		$PlayerYellow/ButtonYoB, 
-		$PlayerYellow/ButtonYoG
+		$PlayerYellow/ButtonYoG,
+		$PlayerYellow/StoredUnitCountYellow
 	]
-	ButtonDictionary = {}
+	UIDictionary = {}
+	PlayernameTextDictionary = {}
+	PlayerHpLabelDictionary = {}
 	
-	populate_button_dictionary.rpc(GameManager.Players)
-	assign_buttons_to_players.rpc(GameManager.Players)
+	populate_UI_dictionary.rpc(GameManager.Players)
+	assign_UI_to_players.rpc(GameManager.Players)
+	display_starting_hp.rpc(GameManager.Players)
+	display_player_names.rpc(GameManager.Players)
 
 @rpc("any_peer", "call_local")
-func assign_buttons_to_players(Players):
+func assign_UI_to_players(Players):
 	#dictionary is key: the unique multiplayer id
 	#with values name, health and color
 #logic to disable all buttons that arent yours
-	for i in ButtonDictionary.keys():
+	for i in UIDictionary.keys():
 		if i == multiplayer.get_unique_id():
-			for btn in ButtonDictionary[i]:
-				btn.disabled = false
+			for control in UIDictionary[i]:
+				if control is Label:
+					control.visible = true
+				else:
+					control.visible = true
+					control.disabled = false
 
 func connect_buttons(group_name):
 	var group_node = $group_name # Use $RedButtons, etc.
@@ -63,21 +77,68 @@ func ConvertColorIntToColorString(colorInt):
 		3:
 			return "yellow"
 
-func ConvertColorIntToButtonsAllotted(colorInt):
+func ConvertColorToDisplayedUI(colorInt):
 	match(colorInt):
 		0:
-			return RedPlayerButtons
+			return RedPlayerUI
 		1:
-			return BluePlayerButtons
+			return BluePlayerUI
 		2:
-			return GreenPlayerButtons
+			return GreenPlayerUI
 		3:
-			return YellowPlayerButtons
+			return YellowPlayerUI
+			
+func MapPlayerColorToHpLabel(colorInt):
+	match(colorInt):
+		0:
+			return $PlayerRed/LabelRedHP
+		1:
+			return $PlayerBlue/LabelBlueHP
+		2:
+			return $PlayerGreen/LabelGreenHP
+		3:
+			return $PlayerYellow/LabelYellowHP
+
+func MapPlayerToPlayernameLabel(colorInt):
+	match(colorInt):
+		0:
+			return $PlayerRed/LabelRedPlayername
+		1:
+			return $PlayerBlue/LabelBluePlayername
+		2:
+			return $PlayerGreen/LabelGreenPlayername
+		3:
+			return $PlayerYellow/LabelYellowPlayername
+
+func MapPlayerToStoredUnitContLabel(colorInt):
+	match(colorInt):
+		0:
+			return $PlayerRed/StoredUnitCountRed
+		1:
+			return $PlayerBlue/StoredUnitCountBlue
+		2:
+			return $PlayerGreen/StoredUnitCountGreen
+		3:
+			return $PlayerYellow/StoredUnitCountYellow
 
 @rpc("any_peer", "call_local")
-func populate_button_dictionary(Players):
+func populate_UI_dictionary(Players):
 	for player in Players.keys():
-		ButtonDictionary[player] = ConvertColorIntToButtonsAllotted(Players[player].color)
+		UIDictionary[player] = ConvertColorToDisplayedUI(Players[player].color)
+		
+@rpc("any_peer", "call_local")
+func display_starting_hp(Players):
+	for player in Players.keys():
+		var labelControl = MapPlayerColorToHpLabel(Players[player].color)
+		labelControl.text = str(Players[player].health)
+		var storedUnitCount = MapPlayerToStoredUnitContLabel(Players[player].color)
+		storedUnitCount.text = "3"
+
+@rpc("any_peer", "call_local")
+func display_player_names(Players):
+	for player in Players.keys():
+		var labelControl = MapPlayerToPlayernameLabel(Players[player].color)
+		labelControl.text = Players[player].name
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
