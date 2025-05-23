@@ -10,6 +10,7 @@ var PlayerClickableButtons
 var PlayernameTextDictionary
 var PlayerHpLabelDictionary
 const minimumStoredUnitCount = 0
+var ended_turn_players = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -60,12 +61,11 @@ func _ready():
 	hookup_laneButton_handlers.rpc(GameManager.Players)
 	display_starting_hp.rpc(GameManager.Players)
 	display_player_names.rpc(GameManager.Players)
-
+	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
+	#$EndTurn.pressed.connect(_on_end_turn_pressed)
 
 @rpc("any_peer", "call_local")
 func assign_UI_to_players(Players):
-	#dictionary is key: the unique multiplayer id
-	#with values name, health and color
 	#logic to disable all buttons that arent yours
 	for i in UIDictionary.keys():
 		if i == multiplayer.get_unique_id():
@@ -76,50 +76,212 @@ func assign_UI_to_players(Players):
 					control.visible = true
 					control.disabled = false
 
-#foreach dictionary entry in PlayerClickableButtons setup click handler for that player
+#func _on_end_turn_pressed():
+	#var my_id = multiplayer.get_unique_id()
+	#notify_end_turn.rpc_id(1, my_id)  # Send to host
+#
+#@rpc("any_peer", "call_local")
+#func notify_end_turn(player_id: int):
+	#if player_id in ended_turn_players:
+		#return  # Avoid double-count
+#
+	#ended_turn_players.append(player_id)
+#
+	## Check if all players are done
+	#if ended_turn_players.size() == GameManager.Players.size():
+		#print("Resolving combat!")
+		#resolve_combat()
+		#reset_lane_labels.rpc()
+		#reset_stored_units.rpc()
+
+func resolve_combat():
+	if not multiplayer.is_server():
+		return  # Only host runs this
+
+	var lane_prefixes = ["R", "B", "G", "Y"]
+	var combat_data = {}
+
+	for player_id in GameManager.Players:
+		var color = GameManager.Players[player_id].color
+		var color_str = ConvertColorIntToColorString(color).capitalize()
+		var prefix = "Player" + color_str + "/"
+
+		for suffix in lane_prefixes:
+			if get_lane_initial_for_color(color) == suffix:
+				continue  # Skip player's own lane
+			var label_name = prefix + get_suffix_for_color(color, suffix) + "Count"
+			var label_node = get_node(label_name)
+			var unit_count = int(label_node.text)
+			print("Player", player_id, "lane", suffix, "units:", unit_count)  # DEBUG
+
+			if unit_count > 0:
+				if not combat_data.has(suffix):
+					combat_data[suffix] = {}
+				combat_data[suffix][player_id] = []
+				for _i in unit_count:
+					var rollResult = randi() % 6 + 1
+					combat_data[suffix][player_id].append(rollResult)
+					print("%s  Rolled", rollResult)  # DEBUG
+
+	# Roll resolution
+	var hp_changes := {}
+	for suffix in combat_data.keys():
+		var rolls = combat_data[suffix]
+		for p in rolls:
+			rolls[p].sort_custom(func(a, b): return b - a)
+
+		var ids = rolls.keys()
+		var sizes = []
+		for id in ids:
+			sizes.append(rolls[id].size())
+		var shortest = sizes.min()
+
+		for i in shortest:
+			var sorted = []
+			for id in ids:
+				sorted.append({ "id": id, "val": rolls[id][i] })
+			sorted.sort_custom(func(a, b): return b["val"] - a["val"])
+
+			if sorted.size() < 2 or sorted[0]["val"] == sorted[1]["val"]:
+				continue
+			var loser_id = sorted[1]["id"]
+			hp_changes[loser_id] = hp_changes.get(loser_id, 0) + 1
+
+	# Apply and broadcast new health values
+	for player_id in GameManager.Players:
+		var lost_hp = hp_changes.get(player_id, 0)
+		GameManager.Players[player_id].health -= lost_hp
+
+	# Send to all clients
+	var new_health := {}
+	for player_id in GameManager.Players:
+		new_health[player_id] = GameManager.Players[player_id].health
+
+	update_all_player_health.rpc(new_health)
+	ended_turn_players.clear()
+
+func get_suffix_for_color(color: int, suffix: String) -> String:
+	match color:
+		0:  # Red
+			return "Ro" + suffix
+		1:  # Blue
+			return "Bo" + suffix
+		2:  # Green
+			return "Go" + suffix
+		3:  # Yellow
+			return "Yo" + suffix
+	return suffix  # fallback
+	
+func get_lane_initial_for_color(color: int) -> String:
+	match color:
+		0: return "R"
+		1: return "B"
+		2: return "G"
+		3: return "Y"
+	return ""
+
+@rpc("any_peer", "call_local")
+func reset_lane_labels():
+	for player_id in UIDictionary.keys():
+		for control in UIDictionary[player_id]:
+			if control is Label and "Count" in control.name and "Stored" not in control.name:
+				control.text = "0"
+
+@rpc("any_peer", "call_local")
+func reset_stored_units():
+	for player_id in GameManager.Players.keys():
+		var color = GameManager.Players[player_id].color
+		var stored_label = MapPlayerToStoredUnitContLabel(color)
+		stored_label.text = "3"
+
 @rpc("any_peer", "call_local")
 func hookup_laneButton_handlers(Players):
-	for player in Players.keys():
-		for button in PlayerClickableButtons[player]:
-			hookup_button(button, Players[player].id, Players[player].color)
-	
-
+	var my_id = multiplayer.get_unique_id()
+	for player_id in Players.keys():
+		if player_id == my_id:
+			for button in PlayerClickableButtons[player_id]:
+				hookup_button(button, Players[player_id].id, Players[player_id].color)
 func hookup_button(button, player_multiplayer_id, color):
-	if button.is_connected("pressed", Callable(self, "_on_lane_button_pressed")):
-		return # prevent double connection
+	var callable = Callable(self, "_on_lane_button_pressed_wrapper").bind(player_multiplayer_id, button.name)
 
-	button.pressed.connect(
-		func():
-			if player_multiplayer_id != multiplayer.get_unique_id():
-				return # only let the local player use their own buttons
+	if not button.is_connected("pressed", callable):
+		button.pressed.connect(callable)
 
-			var stored_label = MapPlayerToStoredUnitContLabel(color)
-			var stored_count = int(stored_label.text)
+func _on_lane_button_pressed_wrapper(player_multiplayer_id: int, button_name: String):
+	if player_multiplayer_id != multiplayer.get_unique_id():
+		return
+	on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
 
-			if stored_count <= 0:
-				return # don't allow click if no units left
+@rpc("any_peer")
+func update_lane_label(color: int, suffix: String, new_lane_value: int, new_stored_value: int):
+	var count_label = get_node_or_null("Player" + ConvertColorIntToColorString(color).capitalize() + "/" + suffix + "Count")
+	if count_label and count_label is Label:
+		count_label.text = str(new_lane_value)
 
-			# Find the label next to this button and increment it
-			var suffix = button.name.substr(button.name.length() - 2) # e.g., "RoY", "BoG"
-			var count_label_name = suffix + "Count" # e.g., "RoYCount"
-			var count_label = button.get_parent().get_node(count_label_name)
+	var stored_label = MapPlayerToStoredUnitContLabel(color)
+	stored_label.text = str(new_stored_value)
+@rpc("any_peer", "call_local")
+func on_lane_button_pressed(player_id: int, button_name: String):
+	print(str(multiplayer.get_unique_id()) + " is calling, " + str(player_id) + " is argument")
+	if !GameManager.Players.has(player_id):
+		return
 
-			if count_label and count_label is Label:
-				var current_val = int(count_label.text)
-				count_label.text = str(current_val + 1)
+	var color = GameManager.Players[player_id].color
+	var stored_label = MapPlayerToStoredUnitContLabel(color)
+	var stored_count = int(stored_label.text)
 
-			# Decrease stored unit count
-			stored_label.text = str(stored_count - 1)
-	)
+	if stored_count <= 0:
+		return
 
-func connect_buttons(group_name):
-	var group_node = $group_name # Use $RedButtons, etc.
-	for button in group_node.get_children():
-		button.pressed.connect(_on_player_button_pressed.bind(button.name))
+	var suffix = button_name.substr(button_name.length() - 3) # "RoY", "BoR", etc.
+	var count_label = get_node_or_null("Player" + ConvertColorIntToColorString(color).capitalize() + "/" + suffix + "Count")
 
-func _on_player_button_pressed(button_name):
-	var id = multiplayer.get_unique_id()
-	GameManager.HandleButtonPress.rpc_id(1, id, button_name)
+	if count_label and count_label is Label:
+		var current_val = int(count_label.text)
+		count_label.text = str(current_val + 1)
+
+	stored_label.text = str(stored_count - 1)
+
+	# Broadcast to all peers to sync UI
+	update_lane_label.rpc(color, suffix, int(count_label.text), stored_count - 1)
+	update_lane_label(color, suffix, int(count_label.text), stored_count - 1)
+
+@rpc("any_peer")
+func update_all_player_health(health_data: Dictionary):
+	for player_id in health_data.keys():
+		if GameManager.Players.has(player_id):
+			GameManager.Players[player_id].health = health_data[player_id]
+			# Now update the health label on UI for this player
+			var color = GameManager.Players[player_id].color
+			var color_str = ConvertColorIntToColorString(color).capitalize()
+			var label_path = "Player" + color_str + "/HealthLabel"  # Adjust to your node path
+			if has_node(label_path):
+				var health_label = get_node(label_path)
+				health_label.text = str(health_data[player_id])
+
+
+func _on_reset_units_button_pressed():
+	var my_id = multiplayer.get_unique_id()
+	reset_player_units.rpc_id(1, my_id)
+@rpc("any_peer", "call_local")
+func reset_player_units(player_id: int):
+	if not GameManager.Players.has(player_id):
+		return
+
+	var color = GameManager.Players[player_id].color
+	reset_units_ui.rpc(color)
+@rpc("any_peer", "call_local")
+func reset_units_ui(color: int):
+	var stored_label = MapPlayerToStoredUnitContLabel(color)
+	stored_label.text = "3"
+
+	var group_name = ConvertColorIntToColorString(color).capitalize()
+	var player_node = get_node("Player" + group_name)
+
+	for label in player_node.get_children():
+		if label.name.ends_with("Count") and label.name != "StoredUnitCount" + group_name:
+			if label is Label:
+				label.text = "0"
 
 func ConvertColorIntToColorString(colorInt):
 	match(colorInt):
@@ -131,7 +293,6 @@ func ConvertColorIntToColorString(colorInt):
 			return "green"
 		3:
 			return "yellow"
-
 func ConvertColorToClickableButtons(colorInt):
 	match(colorInt):
 		0:
@@ -142,7 +303,6 @@ func ConvertColorToClickableButtons(colorInt):
 			return [$PlayerGreen/ButtonGoR, $PlayerGreen/ButtonGoB, $PlayerGreen/ButtonGoY]
 		3:
 			return [$PlayerYellow/ButtonYoR, $PlayerYellow/ButtonYoG, $PlayerYellow/ButtonYoB]
-
 func ConvertColorToDisplayedUI(colorInt):
 	match(colorInt):
 		0:
