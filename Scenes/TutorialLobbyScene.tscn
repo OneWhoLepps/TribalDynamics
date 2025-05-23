@@ -57,6 +57,7 @@ rotation = -0.00103556
 text = "Name:"
 
 [node name="IPandPortLabel" type="Label" parent="."]
+layout_mode = 0
 offset_left = 355.0
 offset_top = 29.0
 offset_right = 533.0
@@ -66,6 +67,7 @@ text = "Host IP to connect to:"
 autowrap_mode = 2
 
 [node name="IPTextField" type="LineEdit" parent="."]
+layout_mode = 0
 offset_left = 524.0
 offset_top = 29.0
 offset_right = 762.0
@@ -77,6 +79,15 @@ offset_left = 796.0
 offset_right = 1301.0
 offset_bottom = 112.0
 
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 524.0
+offset_top = 67.0
+offset_right = 742.0
+offset_bottom = 85.0
+text = "Restart game"
+
 [connection signal="button_down" from="HostGame" to="." method="_on_host_game_button_down"]
 [connection signal="button_down" from="JoinGame" to="." method="_on_join_game_button_down"]
 [connection signal="button_down" from="StartGame" to="." method="_on_start_game_button_down"]
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
