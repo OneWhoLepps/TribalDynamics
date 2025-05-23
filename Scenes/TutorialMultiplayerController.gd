@@ -38,7 +38,8 @@ func HostGame(name, id, color):
 			"name": name,
 			 "id": id,
 			 "color": color,
-			 "health": 10
+			 "health": 10,
+			"storedUnitCount": 3
 			}
 
 		var message = "%s has joined the lobby with color %s." % [name, color]
@@ -129,10 +130,11 @@ func UpdateChatHistory(history: Array):
 
 func AddPlayerToGameManager(id: int, name: String, color: int):
 	GameManager.Players[id] = {
+		"id": id,
 		"name": name,
 		"color": color,
 		"health": 10,
-		"unitsStored": 3
+		"storedUnitCount": 3
 	}
 
 func _sync_all_players(players: Dictionary):
@@ -142,7 +144,9 @@ func _sync_all_players(players: Dictionary):
 		GameManager.Players[id] = {
 			"name": player["name"],
 			"color": player["color"],
-			"health": player["health"]
+			"health": player["health"],
+			"unitsStored": player["storedUnitCount"],
+			"id": player["id"]
 		}
 
 func refresh_chatbox():

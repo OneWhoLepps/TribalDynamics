@@ -85,8 +85,32 @@ func hookup_laneButton_handlers(Players):
 	
 
 func hookup_button(button, player_multiplayer_id, color):
-	#START IN HERE
-	pass;
+	if button.is_connected("pressed", Callable(self, "_on_lane_button_pressed")):
+		return # prevent double connection
+
+	button.pressed.connect(
+		func():
+			if player_multiplayer_id != multiplayer.get_unique_id():
+				return # only let the local player use their own buttons
+
+			var stored_label = MapPlayerToStoredUnitContLabel(color)
+			var stored_count = int(stored_label.text)
+
+			if stored_count <= 0:
+				return # don't allow click if no units left
+
+			# Find the label next to this button and increment it
+			var suffix = button.name.substr(button.name.length() - 2) # e.g., "RoY", "BoG"
+			var count_label_name = suffix + "Count" # e.g., "RoYCount"
+			var count_label = button.get_parent().get_node(count_label_name)
+
+			if count_label and count_label is Label:
+				var current_val = int(count_label.text)
+				count_label.text = str(current_val + 1)
+
+			# Decrease stored unit count
+			stored_label.text = str(stored_count - 1)
+	)
 
 func connect_buttons(group_name):
 	var group_node = $group_name # Use $RedButtons, etc.
