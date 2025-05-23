@@ -4,6 +4,7 @@ extends Node
 var Players = {}
 #this is list of messages to go into chatbox
 var Chatbox = []
+var PlayersToRefreshTo = {}
 
 enum {RED, BLUE, YELLOW, GREEN}
 var OpenColors = [BLUE, YELLOW, GREEN]

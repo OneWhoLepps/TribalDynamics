@@ -70,6 +70,8 @@ func _ready():
 	hookup_laneButton_handlers.rpc(GameManager.Players)
 	display_starting_hp.rpc(GameManager.Players)
 	display_player_names.rpc(GameManager.Players)
+	for player in GameManager.Players:
+		UpdatePlayerHealthRpc.rpc(GameManager.Players[player].id)
 	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 
@@ -319,6 +321,19 @@ func UpdatePlayerHealth(player):
 				$PlayerGreen/LabelGreenHP.text = str(GameManager.Players[player].health)
 			3:
 				$PlayerYellow/LabelYellowHP.text = str(GameManager.Players[player].health)
+				
+
+@rpc("any_peer", "call_local")
+func UpdatePlayerHealthRpc(player):
+		match GameManager.Players[player].color:
+			0:
+				$PlayerRed/LabelRedHP.text = str(GameManager.Players[player].health)
+			1:
+				$PlayerBlue/LabelBlueHP.text = str(GameManager.Players[player].health)
+			2:
+				$PlayerGreen/LabelGreenHP.text = str(GameManager.Players[player].health)
+			3:
+				$PlayerYellow/LabelYellowHP.text = str(GameManager.Players[player].health)
 
 func _on_reset_units_button_pressed():
 	var my_id = multiplayer.get_unique_id()
@@ -492,6 +507,9 @@ func get_player_id_by_color(color: int) -> int:
 		if GameManager.Players[player_id].color == color:
 			return player_id
 	return -1
+
+func _on_restart_button_pressed():
+	get_tree().reload_current_scene()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

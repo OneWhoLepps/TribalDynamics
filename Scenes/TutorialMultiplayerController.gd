@@ -55,11 +55,27 @@ func _on_join_game_button_down():
 	multiplayer.set_multiplayer_peer(peer)
 
 func _on_start_game_button_down():
-	StartGame.rpc()
+	if multiplayer.is_server():
+		start_game.rpc()  # Start the game for everyone
 
-@rpc("any_peer", "call_local")
-func StartGame():
-	var scene = load("res://Scenes/GameBoard.tscn").instantiate()
+@rpc("authority")
+func start_game():
+	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	scene.name = "GameBoard"
+	get_tree().root.add_child(scene)
+
+	start_game_on_clients.rpc()
+#
+#@rpc("any_peer", "call_local")
+#func StartGame():
+	#var scene = load("res://Scenes/GameBoard.tscn").instantiate()
+	#GameManager.PlayersToRefreshTo = GameManager.Players.duplicate(true)
+	#get_tree().root.add_child(scene)
+
+@rpc("any_peer")  # Or "any_peer" if you're not using authority roles
+func start_game_on_clients():
+	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	scene.name = "GameBoard"
 	get_tree().root.add_child(scene)
 
 @rpc("any_peer", "call_local")
@@ -156,3 +172,32 @@ func refresh_chatbox():
 
 func connection_failed():
 	print("Connection failed!")
+
+
+func _on_button_button_down():
+	if(multiplayer.get_unique_id() == 1):
+		request_restart_game.rpc_id(1)  # Call to authority (usually peer 1)
+	
+# Host/client calls this to request a restart (everyone will do it)
+@rpc("any_peer", "call_local")  # Only runs on the server/host
+func request_restart_game():
+	restart_game.rpc()  # Call the actual restart on *all* peers
+
+@rpc("any_peer", "call_local")
+func restart_game():
+	# Reset player health
+	for player_id in GameManager.Players:
+		GameManager.Players[player_id].health = 10
+
+	# Queue-free old GameBoard scene
+	for child in get_tree().root.get_children():
+		if child.name == "GameBoard":
+			child.queue_free()
+
+	await get_tree().process_frame  # Wait until scene is really freed
+	await get_tree().process_frame  # Extra frame helps ensure it's gone
+
+	# Instantiate a new GameBoard
+	var new_game_scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	new_game_scene.name = "GameBoard"
+	get_tree().root.add_child(new_game_scene)
