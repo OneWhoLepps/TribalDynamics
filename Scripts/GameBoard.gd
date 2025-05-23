@@ -9,6 +9,7 @@ var UIDictionary
 var PlayerClickableButtons
 var PlayernameTextDictionary
 var PlayerHpLabelDictionary
+var ButtonsUsedToAttackGivenColorDictionary
 const minimumStoredUnitCount = 0
 var ended_turn_players = []
 
@@ -54,6 +55,12 @@ func _ready():
 	PlayernameTextDictionary = {}
 	PlayerHpLabelDictionary = {}
 	PlayerClickableButtons = {}
+	ButtonsUsedToAttackGivenColorDictionary = {
+		0: [$PlayerBlue/ButtonBoR, $PlayerYellow/ButtonYoR, $PlayerGreen/ButtonGoR],
+		1: [$PlayerRed/ButtonRoB, $PlayerYellow/ButtonYoB, $PlayerGreen/ButtonGoB],
+		2: [$PlayerRed/ButtonRoG, $PlayerBlue/ButtonBoG, $PlayerYellow/ButtonYoG],
+		3: [$PlayerRed/ButtonRoY, $PlayerBlue/ButtonBoY, $PlayerGreen/ButtonGoY]
+	}
 	
 	populate_UI_dictionary.rpc(GameManager.Players)
 	assign_UI_to_players.rpc(GameManager.Players)
@@ -116,32 +123,15 @@ func resolve_combat():
 		var results = decide_victor(laneCombinations[combo][0], laneCombinations[combo][1])
 		GameManager.Players[player1_id].health += results[0]
 		GameManager.Players[player2_id].health += results[1]
-
-		print(GameManager.Players[player1_id].health)
-		print(GameManager.Players[player2_id].health)
 	send_combat_results_to_all_players.rpc(GameManager.Players)
-	#do something to handle death?
 
 @rpc("any_peer", "call_local")
 func send_combat_results_to_all_players(Players):
 	GameManager.Players = Players;
 	update_all_player_health(Players);
 	ended_turn_players = [];
-	print(GameManager.Players)
-	print(ended_turn_players)
 
 func decide_victor(player1Lane, player2Lane):
-	#make 2 vars, one for health player 1 gains/losts and same w player 2, init to 0
-	#roll a d6 for each playerlane, then sort descending
-	#if both players put 0 return
-	#if d6 result array for each player isnt equal in length
-	##make the player with smaller array lose 1 life and them remove last element from
-	##player with first array, do this until arrays are same length
-	#now you should have equal length arrays
-	#do a comparison on the elements in the array
-	#when tie, do nothing
-	#for each greater result, add -1 to losing player var
-	#return those vars
 	var p1_hp_change := 0
 	var p2_hp_change := 0
 
@@ -155,7 +145,7 @@ func decide_victor(player1Lane, player2Lane):
 	var diceResults = roll_combat_dice(int(player1Lane), int(player2Lane))
 	var player1rolls = diceResults.player1_rolls;
 	var player2rolls = diceResults.player2_rolls;
-	# Sort both lanes descending
+
 	player1rolls.sort()
 	player1rolls.reverse()
 	player2rolls.sort()
@@ -164,10 +154,10 @@ func decide_victor(player1Lane, player2Lane):
 	# Equalize lengths
 	while player1rolls.size() != player2rolls.size():
 		if player1rolls.size() < player2rolls.size():
-			p1_hp_change -= 1  # Player1 loses HP
+			p1_hp_change -= 1
 			player2rolls.pop_back()
 		else:
-			p2_hp_change -= 1  # Player2 loses HP
+			p2_hp_change -= 1
 			player1rolls.pop_back()
 
 	# Compare dice rolls one by one
@@ -176,9 +166,9 @@ func decide_victor(player1Lane, player2Lane):
 		var p2_roll = player2rolls[i]
 
 		if p1_roll > p2_roll:
-			p2_hp_change -= 1  # Player2 loses HP
+			p2_hp_change -= 1
 		elif p2_roll > p1_roll:
-			p1_hp_change -= 1  # Player1 loses HP
+			p1_hp_change -= 1
 		# Tie does nothing
 
 	return [
@@ -206,6 +196,45 @@ func roll_combat_dice(player1Count: int, player2Count: int) -> Dictionary:
 		"player1_rolls": player1_rolls,
 		"player2_rolls": player2_rolls
 	}
+
+@rpc("any_peer", "call_local")
+func handleAndDisableDeaths():
+	var all_defeated := true  # Assume all are defeated unless we find one alive
+	for player_id in GameManager.Players.keys():
+		if GameManager.Players[player_id].health <= 0:
+			print("Player " + str(player_id) + " has been defeated.")
+			
+			# Disable their buttons
+			if PlayerClickableButtons.has(player_id):
+				for button in PlayerClickableButtons[player_id]:
+					button.disabled = true
+
+			# Optionally gray out or hide their UI
+			if UIDictionary.has(player_id):
+				for control in UIDictionary[player_id]:
+					control.modulate = Color(0.5, 0.5, 0.5, 0.7)  # semi-transparent gray
+			if ButtonsUsedToAttackGivenColorDictionary.has(GameManager.Players[player_id].color):
+				for control in ButtonsUsedToAttackGivenColorDictionary[GameManager.Players[player_id].color]:
+					control.disabled = true;
+		else:
+			all_defeated = false  # Found at least one player still alive
+	# Do something if ALL players are defeated
+	if all_defeated:
+		print("All players have been defeated!")
+		# Insert your logic here:
+		# - Show a game over screen
+		# - Reset the game
+		# - Announce a draw
+		# - Return to lobby, etc.
+		show_game_over_screen.rpc()
+
+@rpc("any_peer", "call_local")
+func show_game_over_screen():
+	var lose_screen = get_node_or_null("EveryoneLosesScreen")
+	if lose_screen:
+		lose_screen.visible = true
+	else:
+		print("ERROR: Could not find EveryoneLosesScreen")
 
 @rpc("any_peer", "call_local")
 func reset_lane_labels():
@@ -294,6 +323,11 @@ func UpdatePlayerHealth(player):
 func _on_reset_units_button_pressed():
 	var my_id = multiplayer.get_unique_id()
 	reset_player_units.rpc_id(1, my_id)
+
+@rpc("any_peer", "call_local")
+func reset_all_player_units(Players):
+	for player in Players.keys():
+		reset_player_units.rpc(int(Players[player].id))
 @rpc("any_peer", "call_local")
 func reset_player_units(player_id: int):
 	if not GameManager.Players.has(player_id):
@@ -328,6 +362,9 @@ func notify_end_turn(player_id: int):
 	if ended_turn_players.size() == GameManager.Players.size():
 		print("Resolving combat!")
 		resolve_combat()
+		reset_all_player_units.rpc(GameManager.Players)
+		handleAndDisableDeaths.rpc()
+
 
 @rpc("any_peer", "call_local")
 func populate_UI_dictionary(Players):
@@ -454,7 +491,7 @@ func get_player_id_by_color(color: int) -> int:
 	for player_id in GameManager.Players:
 		if GameManager.Players[player_id].color == color:
 			return player_id
-	return -1  # Not found
+	return -1
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

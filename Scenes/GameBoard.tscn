@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://kel17x62c5pw"]
+[gd_scene load_steps=6 format=3 uid="uid://kel17x62c5pw"]
 
 [ext_resource type="Texture2D" uid="uid://bw2behtcesdl" path="res://Assets/TribalDynamicsBoard.svg" id="1_tk7qh"]
 [ext_resource type="Script" path="res://Scripts/GameBoard.gd" id="1_ywyfp"]
+[ext_resource type="Texture2D" uid="uid://c3r3f1m43h3f8" path="res://Assets/everyoneLoses.jpg" id="3_l3wer"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d5qfj"]
 font_color = Color(0, 0, 0, 1)
@@ -452,3 +453,10 @@ offset_top = 579.0
 offset_right = 563.5
 offset_bottom = 610.0
 text = "Reset Units"
+
+[node name="EveryoneLosesScreen" type="Sprite2D" parent="."]
+visible = false
+z_index = 2
+position = Vector2(599, 363.5)
+scale = Vector2(1.44, 1.40591)
+texture = ExtResource("3_l3wer")
