@@ -12,8 +12,7 @@ func _ready():
 	pass
 
 
-
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func HandleButtonPress(player_id, button_name):
 	print("Player", player_id, "pressed", button_name)
 

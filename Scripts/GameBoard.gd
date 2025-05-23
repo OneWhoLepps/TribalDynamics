@@ -5,8 +5,11 @@ var BluePlayerUI
 var GreenPlayerUI
 var YellowPlayerUI
 var UIDictionary
+
+var PlayerClickableButtons
 var PlayernameTextDictionary
 var PlayerHpLabelDictionary
+const minimumStoredUnitCount = 0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -14,40 +17,56 @@ func _ready():
 		$PlayerRed/ButtonRoY, 
 		$PlayerRed/ButtonRoB, 
 		$PlayerRed/ButtonRoG,
-		$PlayerRed/StoredUnitCountRed
+		$PlayerRed/StoredUnitCountRed,
+		$PlayerRed/RoYCount,
+		$PlayerRed/RoGCount,
+		$PlayerRed/RoBCount
 	]
 	BluePlayerUI = [
 		$PlayerBlue/ButtonBoY, 
 		$PlayerBlue/ButtonBoR, 
 		$PlayerBlue/ButtonBoG,
-		$PlayerBlue/StoredUnitCountBlue
+		$PlayerBlue/StoredUnitCountBlue,
+		$PlayerBlue/BoGCount,
+		$PlayerBlue/BoYCount,
+		$PlayerBlue/BoRCount
 		]
 	GreenPlayerUI = [
 		$PlayerGreen/ButtonGoY, 
 		$PlayerGreen/ButtonGoB, 
 		$PlayerGreen/ButtonGoR,
-		$PlayerGreen/StoredUnitCountGreen
+		$PlayerGreen/StoredUnitCountGreen,
+		$PlayerGreen/GoYCount,
+		$PlayerGreen/GoBCount,
+		$PlayerGreen/GoRCount
 	]
 	YellowPlayerUI = [
 		$PlayerYellow/ButtonYoR, 
 		$PlayerYellow/ButtonYoB, 
 		$PlayerYellow/ButtonYoG,
-		$PlayerYellow/StoredUnitCountYellow
+		$PlayerYellow/StoredUnitCountYellow,
+		$PlayerYellow/YoGCount,
+		$PlayerYellow/YoRCount,
+		$PlayerYellow/YoBCount
 	]
 	UIDictionary = {}
 	PlayernameTextDictionary = {}
 	PlayerHpLabelDictionary = {}
+	PlayerClickableButtons = {}
 	
 	populate_UI_dictionary.rpc(GameManager.Players)
 	assign_UI_to_players.rpc(GameManager.Players)
+	populate_clickable_button_dictionary.rpc(GameManager.Players)
+	hookup_laneButton_handlers.rpc(GameManager.Players)
 	display_starting_hp.rpc(GameManager.Players)
 	display_player_names.rpc(GameManager.Players)
+
 
 @rpc("any_peer", "call_local")
 func assign_UI_to_players(Players):
 	#dictionary is key: the unique multiplayer id
 	#with values name, health and color
-#logic to disable all buttons that arent yours
+	#logic to disable all buttons that arent yours
 	for i in UIDictionary.keys():
 		if i == multiplayer.get_unique_id():
 			for control in UIDictionary[i]:
@@ -56,6 +75,18 @@ func assign_UI_to_players(Players):
 				else:
 					control.visible = true
 					control.disabled = false
+
+#foreach dictionary entry in PlayerClickableButtons setup click handler for that player
+@rpc("any_peer", "call_local")
+func hookup_laneButton_handlers(Players):
+	for player in Players.keys():
+		for button in PlayerClickableButtons[player]:
+			hookup_button(button, Players[player].id, Players[player].color)
+	
+
+func hookup_button(button, player_multiplayer_id, color):
+	#START IN HERE
+	pass;
 
 func connect_buttons(group_name):
 	var group_node = $group_name # Use $RedButtons, etc.
@@ -77,6 +108,17 @@ func ConvertColorIntToColorString(colorInt):
 		3:
 			return "yellow"
 
+func ConvertColorToClickableButtons(colorInt):
+	match(colorInt):
+		0:
+			return [$PlayerRed/ButtonRoB, $PlayerRed/ButtonRoG, $PlayerRed/ButtonRoY]
+		1:
+			return [$PlayerBlue/ButtonBoR, $PlayerBlue/ButtonBoG, $PlayerBlue/ButtonBoY]
+		2:
+			return [$PlayerGreen/ButtonGoR, $PlayerGreen/ButtonGoB, $PlayerGreen/ButtonGoY]
+		3:
+			return [$PlayerYellow/ButtonYoR, $PlayerYellow/ButtonYoG, $PlayerYellow/ButtonYoB]
+
 func ConvertColorToDisplayedUI(colorInt):
 	match(colorInt):
 		0:
@@ -87,7 +129,7 @@ func ConvertColorToDisplayedUI(colorInt):
 			return GreenPlayerUI
 		3:
 			return YellowPlayerUI
-			
+	
 func MapPlayerColorToHpLabel(colorInt):
 	match(colorInt):
 		0:
@@ -98,7 +140,6 @@ func MapPlayerColorToHpLabel(colorInt):
 			return $PlayerGreen/LabelGreenHP
 		3:
 			return $PlayerYellow/LabelYellowHP
-
 func MapPlayerToPlayernameLabel(colorInt):
 	match(colorInt):
 		0:
@@ -109,7 +150,6 @@ func MapPlayerToPlayernameLabel(colorInt):
 			return $PlayerGreen/LabelGreenPlayername
 		3:
 			return $PlayerYellow/LabelYellowPlayername
-
 func MapPlayerToStoredUnitContLabel(colorInt):
 	match(colorInt):
 		0:
@@ -125,6 +165,12 @@ func MapPlayerToStoredUnitContLabel(colorInt):
 func populate_UI_dictionary(Players):
 	for player in Players.keys():
 		UIDictionary[player] = ConvertColorToDisplayedUI(Players[player].color)
+		
+#have dictionary of each player with each unique clickable button of said player
+@rpc("any_peer", "call_local")
+func populate_clickable_button_dictionary(Players):
+	for player in Players.keys():
+		PlayerClickableButtons[player] = ConvertColorToClickableButtons(Players[player].color)
 		
 @rpc("any_peer", "call_local")
 func display_starting_hp(Players):
