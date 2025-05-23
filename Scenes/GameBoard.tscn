@@ -1,7 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://kel17x62c5pw"]
+[gd_scene load_steps=5 format=3 uid="uid://kel17x62c5pw"]
 
 [ext_resource type="Texture2D" uid="uid://bw2behtcesdl" path="res://Assets/TribalDynamicsBoard.svg" id="1_tk7qh"]
 [ext_resource type="Script" path="res://Scripts/GameBoard.gd" id="1_ywyfp"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_d5qfj"]
+font_color = Color(0, 0, 0, 1)
 
 [sub_resource type="GDScript" id="GDScript_itqip"]
 script/source = "# Four Player Board Game Logic in Godot (GDScript)
@@ -207,6 +210,7 @@ disabled = true
 text = "+"
 
 [node name="LabelGreenHP" type="Label" parent="PlayerGreen"]
+z_index = 1
 layout_mode = 0
 offset_left = 10.0
 offset_top = 5.0
@@ -297,11 +301,13 @@ disabled = true
 text = "+"
 
 [node name="LabelYellowHP" type="Label" parent="PlayerYellow"]
+z_index = 1
 layout_mode = 0
 offset_left = 10.0
 offset_top = 5.0
 offset_right = 43.0
 offset_bottom = 28.0
+label_settings = SubResource("LabelSettings_d5qfj")
 
 [node name="LabelYellowPlayername" type="Label" parent="PlayerYellow"]
 layout_mode = 0
