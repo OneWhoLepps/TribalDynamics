@@ -48,32 +48,26 @@ func HostGame(name, id, color):
 
 func _on_join_game_button_down():
 	peer = ENetMultiplayerPeer.new()
-	#swap to this when debugging
-	#peer.create_client(Address, port)
-	peer.create_client(ip_input.text, port)
+	var error = peer.create_client(ip_input.text, port)
+	
+	if error != OK:
+		print("Failed to connect to server. Error code: ", error)
+		match error:
+			ERR_CANT_CREATE: print("Cannot create client.")
+			ERR_CANT_CONNECT: print("Cannot connect to host.")
+			ERR_ALREADY_IN_USE: print("Already connected.")
+			_:
+				print("Unknown error.")
+		return
 	peer.get_host().compress(ENetConnection.COMPRESS_RANGE_CODER)
 	multiplayer.set_multiplayer_peer(peer)
 
 func _on_start_game_button_down():
 	if multiplayer.is_server():
-		start_game.rpc()  # Start the game for everyone
+		start_game.rpc()
 
-@rpc("authority")
+@rpc("any_peer", "call_local")
 func start_game():
-	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
-	scene.name = "GameBoard"
-	get_tree().root.add_child(scene)
-
-	start_game_on_clients.rpc()
-#
-#@rpc("any_peer", "call_local")
-#func StartGame():
-	#var scene = load("res://Scenes/GameBoard.tscn").instantiate()
-	#GameManager.PlayersToRefreshTo = GameManager.Players.duplicate(true)
-	#get_tree().root.add_child(scene)
-
-@rpc("any_peer")  # Or "any_peer" if you're not using authority roles
-func start_game_on_clients():
 	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
 	scene.name = "GameBoard"
 	get_tree().root.add_child(scene)
@@ -176,12 +170,11 @@ func connection_failed():
 
 func _on_button_button_down():
 	if(multiplayer.get_unique_id() == 1):
-		request_restart_game.rpc_id(1)  # Call to authority (usually peer 1)
+		request_restart_game.rpc_id(1)
 	
-# Host/client calls this to request a restart (everyone will do it)
-@rpc("any_peer", "call_local")  # Only runs on the server/host
+@rpc("any_peer", "call_local")
 func request_restart_game():
-	restart_game.rpc()  # Call the actual restart on *all* peers
+	restart_game.rpc()
 
 @rpc("any_peer", "call_local")
 func restart_game():
@@ -201,3 +194,6 @@ func restart_game():
 	var new_game_scene = preload("res://Scenes/GameBoard.tscn").instantiate()
 	new_game_scene.name = "GameBoard"
 	get_tree().root.add_child(new_game_scene)
+	var overlay := new_game_scene.get_node("OverlayContainer")
+	if overlay:
+		overlay.visible = false

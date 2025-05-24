@@ -12,6 +12,8 @@ var PlayerHpLabelDictionary
 var ButtonsUsedToAttackGivenColorDictionary
 const minimumStoredUnitCount = 0
 var ended_turn_players = []
+var deadPlayerIds
+var alivePlayerCount
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -61,11 +63,13 @@ func _ready():
 		2: [$PlayerRed/ButtonRoG, $PlayerBlue/ButtonBoG, $PlayerYellow/ButtonYoG],
 		3: [$PlayerRed/ButtonRoY, $PlayerBlue/ButtonBoY, $PlayerGreen/ButtonGoY]
 	}
+	deadPlayerIds = []
+	
+	alivePlayerCount = GameManager.Players.size()
 	
 	populate_UI_dictionary.rpc(GameManager.Players)
 	assign_UI_to_players.rpc(GameManager.Players)
 	populate_clickable_button_dictionary.rpc(GameManager.Players)
-	#populate_player_health_dictionary.rpc(GameManager.Players)
 	
 	hookup_laneButton_handlers.rpc(GameManager.Players)
 	display_starting_hp.rpc(GameManager.Players)
@@ -75,37 +79,16 @@ func _ready():
 	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 
-
-
 @rpc("any_peer", "call_local")
 func assign_UI_to_players(Players):
-	#logic to disable all buttons that arent yours
-	for i in UIDictionary.keys():
-		if i == multiplayer.get_unique_id():
-			for control in UIDictionary[i]:
-				if control is Label:
-					control.visible = true
-				else:
-					control.visible = true
-					control.disabled = false
-
-#func _on_end_turn_pressed():
-	#var my_id = multiplayer.get_unique_id()
-	#notify_end_turn.rpc_id(1, my_id)  # Send to host
-#
-#@rpc("any_peer", "call_local")
-#func notify_end_turn(player_id: int):
-	#if player_id in ended_turn_players:
-		#return  # Avoid double-count
-#
-	#ended_turn_players.append(player_id)
-#
-	## Check if all players are done
-	#if ended_turn_players.size() == GameManager.Players.size():
-		#print("Resolving combat!")
-		#resolve_combat()
-		#reset_lane_labels.rpc()
-		#reset_stored_units.rpc()
+	for player_id in UIDictionary.keys():
+		var is_local_player = player_id == multiplayer.get_unique_id()
+		for control in UIDictionary[player_id]:
+			if control is Label:
+				control.visible = is_local_player
+			else:
+				control.visible = is_local_player
+				control.disabled = not is_local_player
 
 func resolve_combat():
 	var laneCombinations = {
@@ -178,7 +161,6 @@ func decide_victor(player1Lane, player2Lane):
 		p2_hp_change
 	]
 func roll_combat_dice(player1Count: int, player2Count: int) -> Dictionary:
-	# If either side has no units, return empty arrays
 	if player1Count == 0 and player2Count == 0:
 		return {
 			"player1_rolls": [],
@@ -203,15 +185,15 @@ func roll_combat_dice(player1Count: int, player2Count: int) -> Dictionary:
 func handleAndDisableDeaths():
 	var all_defeated := true  # Assume all are defeated unless we find one alive
 	for player_id in GameManager.Players.keys():
+		unlock_player_unit_selections(player_id)
 		if GameManager.Players[player_id].health <= 0:
-			print("Player " + str(player_id) + " has been defeated.")
-			
-			# Disable their buttons
+			if player_id not in deadPlayerIds:
+				deadPlayerIds.append(player_id)
+				alivePlayerCount -= 1
+			lockin_player_unit_selections(player_id)
 			if PlayerClickableButtons.has(player_id):
 				for button in PlayerClickableButtons[player_id]:
 					button.disabled = true
-
-			# Optionally gray out or hide their UI
 			if UIDictionary.has(player_id):
 				for control in UIDictionary[player_id]:
 					control.modulate = Color(0.5, 0.5, 0.5, 0.7)  # semi-transparent gray
@@ -219,16 +201,49 @@ func handleAndDisableDeaths():
 				for control in ButtonsUsedToAttackGivenColorDictionary[GameManager.Players[player_id].color]:
 					control.disabled = true;
 		else:
-			all_defeated = false  # Found at least one player still alive
-	# Do something if ALL players are defeated
+			all_defeated = false
+			
 	if all_defeated:
-		print("All players have been defeated!")
-		# Insert your logic here:
-		# - Show a game over screen
-		# - Reset the game
-		# - Announce a draw
-		# - Return to lobby, etc.
 		show_game_over_screen.rpc()
+		
+	if(alivePlayerCount == 1):
+		var alivePlayer
+		for player in GameManager.Players:
+			if player not in deadPlayerIds:
+				alivePlayer = GameManager.Players[player]
+				showVictoryScreen.rpc(alivePlayer.name)
+
+func lockin_player_unit_selections(player_id):
+	disable_given_player_end_turn_button.rpc_id(player_id)
+	disable_given_player_reset_units_button.rpc_id(player_id)
+func unlock_player_unit_selections(player_id):
+	enable_given_player_end_turn_button.rpc_id(player_id)
+	enable_given_player_reset_units_button.rpc_id(player_id)
+	pass
+
+@rpc("any_peer", "call_local")
+func showVictoryScreen(playername):
+	var overlay = get_node("OverlayContainer")
+	overlay.visible = true
+
+	var label = overlay.get_node("VictoryLabel")
+	label.text = "%s wins!" % playername
+
+@rpc("any_peer", "call_local")
+func disable_given_player_end_turn_button():
+	$EndTurn.disabled = true
+
+@rpc("any_peer", "call_local")
+func enable_given_player_end_turn_button():
+	$EndTurn.disabled = false
+
+@rpc("any_peer", "call_local")
+func disable_given_player_reset_units_button():
+	$ResetUnitsButton.disabled = true
+
+@rpc("any_peer", "call_local")
+func enable_given_player_reset_units_button():
+	$ResetUnitsButton.disabled = false
 
 @rpc("any_peer", "call_local")
 func show_game_over_screen():
@@ -237,19 +252,6 @@ func show_game_over_screen():
 		lose_screen.visible = true
 	else:
 		print("ERROR: Could not find EveryoneLosesScreen")
-
-@rpc("any_peer", "call_local")
-func reset_lane_labels():
-	for player_id in UIDictionary.keys():
-		for control in UIDictionary[player_id]:
-			if control is Label and "Count" in control.name and "Stored" not in control.name:
-				control.text = "0"
-@rpc("any_peer", "call_local")
-func reset_stored_units():
-	for player_id in GameManager.Players.keys():
-		var color = GameManager.Players[player_id].color
-		var stored_label = MapPlayerToStoredUnitContLabel(color)
-		stored_label.text = "3"
 
 @rpc("any_peer", "call_local")
 func hookup_laneButton_handlers(Players):
@@ -310,7 +312,6 @@ func update_all_player_health(health_data: Dictionary):
 			var color = GameManager.Players[player_id].color
 			var color_str = ConvertColorIntToColorString(color).capitalize()
 			UpdatePlayerHealth(player_id)
-
 func UpdatePlayerHealth(player):
 		match GameManager.Players[player].color:
 			0:
@@ -321,8 +322,6 @@ func UpdatePlayerHealth(player):
 				$PlayerGreen/LabelGreenHP.text = str(GameManager.Players[player].health)
 			3:
 				$PlayerYellow/LabelYellowHP.text = str(GameManager.Players[player].health)
-				
-
 @rpc("any_peer", "call_local")
 func UpdatePlayerHealthRpc(player):
 		match GameManager.Players[player].color:
@@ -338,7 +337,6 @@ func UpdatePlayerHealthRpc(player):
 func _on_reset_units_button_pressed():
 	var my_id = multiplayer.get_unique_id()
 	reset_player_units.rpc_id(1, my_id)
-
 @rpc("any_peer", "call_local")
 func reset_all_player_units(Players):
 	for player in Players.keys():
@@ -347,7 +345,6 @@ func reset_all_player_units(Players):
 func reset_player_units(player_id: int):
 	if not GameManager.Players.has(player_id):
 		return
-
 	var color = GameManager.Players[player_id].color
 	reset_units_ui.rpc(color)
 @rpc("any_peer", "call_local")
@@ -370,11 +367,11 @@ func _on_end_turn_pressed():
 func notify_end_turn(player_id: int):
 	if player_id in ended_turn_players:
 		return  # Avoid double-count
-
 	ended_turn_players.append(player_id)
+	lockin_player_unit_selections(player_id)
 
 	# Check if all players are done
-	if ended_turn_players.size() == GameManager.Players.size():
+	if ended_turn_players.size() == alivePlayerCount:
 		print("Resolving combat!")
 		resolve_combat()
 		reset_all_player_units.rpc(GameManager.Players)
@@ -507,9 +504,6 @@ func get_player_id_by_color(color: int) -> int:
 		if GameManager.Players[player_id].color == color:
 			return player_id
 	return -1
-
-func _on_restart_button_pressed():
-	get_tree().reload_current_scene()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
