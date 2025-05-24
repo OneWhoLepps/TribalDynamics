@@ -56,27 +56,21 @@ func _on_join_game_button_down():
 
 func _on_start_game_button_down():
 	if multiplayer.is_server():
-		start_game.rpc()  # Start the game for everyone
+		start_game.rpc()
 
-@rpc("authority")
+@rpc("any_peer", "call_local")
 func start_game():
 	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
 	scene.name = "GameBoard"
 	get_tree().root.add_child(scene)
 
-	start_game_on_clients.rpc()
+	#start_game_on_clients.rpc()
 #
-#@rpc("any_peer", "call_local")
-#func StartGame():
-	#var scene = load("res://Scenes/GameBoard.tscn").instantiate()
-	#GameManager.PlayersToRefreshTo = GameManager.Players.duplicate(true)
+#@rpc("any_peer")
+#func start_game_on_clients():
+	#var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	#scene.name = "GameBoard"
 	#get_tree().root.add_child(scene)
-
-@rpc("any_peer")  # Or "any_peer" if you're not using authority roles
-func start_game_on_clients():
-	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
-	scene.name = "GameBoard"
-	get_tree().root.add_child(scene)
 
 @rpc("any_peer", "call_local")
 func RemoveColorFromUnassignedList():
@@ -178,10 +172,9 @@ func _on_button_button_down():
 	if(multiplayer.get_unique_id() == 1):
 		request_restart_game.rpc_id(1)  # Call to authority (usually peer 1)
 	
-# Host/client calls this to request a restart (everyone will do it)
-@rpc("any_peer", "call_local")  # Only runs on the server/host
+@rpc("any_peer", "call_local")
 func request_restart_game():
-	restart_game.rpc()  # Call the actual restart on *all* peers
+	restart_game.rpc()
 
 @rpc("any_peer", "call_local")
 func restart_game():
