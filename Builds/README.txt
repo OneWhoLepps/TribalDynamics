@@ -1,0 +1,1 @@
+game generates .exe which should be send to friends alongside my public IP

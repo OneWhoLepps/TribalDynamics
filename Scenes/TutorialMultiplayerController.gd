@@ -48,9 +48,17 @@ func HostGame(name, id, color):
 
 func _on_join_game_button_down():
 	peer = ENetMultiplayerPeer.new()
-	#swap to this when debugging
-	#peer.create_client(Address, port)
-	peer.create_client(ip_input.text, port)
+	var error = peer.create_client(ip_input.text, port)
+	
+	if error != OK:
+		print("Failed to connect to server. Error code: ", error)
+		match error:
+			ERR_CANT_CREATE: print("Cannot create client.")
+			ERR_CANT_CONNECT: print("Cannot connect to host.")
+			ERR_ALREADY_IN_USE: print("Already connected.")
+			_:
+				print("Unknown error.")
+		return
 	peer.get_host().compress(ENetConnection.COMPRESS_RANGE_CODER)
 	multiplayer.set_multiplayer_peer(peer)
 
@@ -162,7 +170,7 @@ func connection_failed():
 
 func _on_button_button_down():
 	if(multiplayer.get_unique_id() == 1):
-		request_restart_game.rpc_id(1)  # Call to authority (usually peer 1)
+		request_restart_game.rpc_id(1)
 	
 @rpc("any_peer", "call_local")
 func request_restart_game():

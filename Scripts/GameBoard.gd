@@ -70,7 +70,6 @@ func _ready():
 	populate_UI_dictionary.rpc(GameManager.Players)
 	assign_UI_to_players.rpc(GameManager.Players)
 	populate_clickable_button_dictionary.rpc(GameManager.Players)
-	#populate_player_health_dictionary.rpc(GameManager.Players)
 	
 	hookup_laneButton_handlers.rpc(GameManager.Players)
 	display_starting_hp.rpc(GameManager.Players)
@@ -80,19 +79,16 @@ func _ready():
 	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 
-
-
 @rpc("any_peer", "call_local")
 func assign_UI_to_players(Players):
-	#logic to disable all buttons that arent yours
-	for i in UIDictionary.keys():
-		if i == multiplayer.get_unique_id():
-			for control in UIDictionary[i]:
-				if control is Label:
-					control.visible = true
-				else:
-					control.visible = true
-					control.disabled = false
+	for player_id in UIDictionary.keys():
+		var is_local_player = player_id == multiplayer.get_unique_id()
+		for control in UIDictionary[player_id]:
+			if control is Label:
+				control.visible = is_local_player
+			else:
+				control.visible = is_local_player
+				control.disabled = not is_local_player
 
 func resolve_combat():
 	var laneCombinations = {
@@ -227,8 +223,6 @@ func unlock_player_unit_selections(player_id):
 
 @rpc("any_peer", "call_local")
 func showVictoryScreen(playername):
-	print(playername + " wins!")
-
 	var overlay = get_node("OverlayContainer")
 	overlay.visible = true
 
