@@ -64,14 +64,6 @@ func start_game():
 	scene.name = "GameBoard"
 	get_tree().root.add_child(scene)
 
-	#start_game_on_clients.rpc()
-#
-#@rpc("any_peer")
-#func start_game_on_clients():
-	#var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
-	#scene.name = "GameBoard"
-	#get_tree().root.add_child(scene)
-
 @rpc("any_peer", "call_local")
 func RemoveColorFromUnassignedList():
 	GameManager.OpenColors.pop_front()
@@ -194,3 +186,6 @@ func restart_game():
 	var new_game_scene = preload("res://Scenes/GameBoard.tscn").instantiate()
 	new_game_scene.name = "GameBoard"
 	get_tree().root.add_child(new_game_scene)
+	var overlay := new_game_scene.get_node("OverlayContainer")
+	if overlay:
+		overlay.visible = false
