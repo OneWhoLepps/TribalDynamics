@@ -12,6 +12,7 @@ var PlayerHpLabelDictionary
 var ButtonsUsedToAttackGivenColorDictionary
 const minimumStoredUnitCount = 0
 var ended_turn_players = []
+var sounds
 var deadPlayerIds
 var alivePlayerCount
 
@@ -64,8 +65,12 @@ func _ready():
 		3: [$PlayerRed/ButtonRoY, $PlayerBlue/ButtonBoY, $PlayerGreen/ButtonGoY]
 	}
 	deadPlayerIds = []
-	
 	alivePlayerCount = GameManager.Players.size()
+	sounds = {
+		#"attack": preload("res://sounds/attack.mp3"),
+		#"win": preload("res://sounds/win.mp3"),
+		"lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3")
+	}
 	
 	populate_UI_dictionary.rpc(GameManager.Players)
 	assign_UI_to_players.rpc(GameManager.Players)
@@ -188,6 +193,7 @@ func handleAndDisableDeaths():
 		unlock_player_unit_selections(player_id)
 		if GameManager.Players[player_id].health <= 0:
 			if player_id not in deadPlayerIds:
+				play_sound.rpc("lose")
 				deadPlayerIds.append(player_id)
 				alivePlayerCount -= 1
 			lockin_player_unit_selections(player_id)
@@ -220,6 +226,15 @@ func unlock_player_unit_selections(player_id):
 	enable_given_player_end_turn_button.rpc_id(player_id)
 	enable_given_player_reset_units_button.rpc_id(player_id)
 	pass
+
+@rpc("call_local", "any_peer")
+func play_sound(sound_name: String):
+	var sound_stream = sounds.get(sound_name)
+	if sound_stream:
+		$AudioStreamPlayer2D.stream = sound_stream
+		$AudioStreamPlayer2D.play()
+	else:
+		print("Unknown sound:", sound_name)
 
 @rpc("any_peer", "call_local")
 func showVictoryScreen(playername):
