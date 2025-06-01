@@ -65,22 +65,22 @@ func _ready():
 		3: [$PlayerRed/ButtonRoY, $PlayerBlue/ButtonBoY, $PlayerGreen/ButtonGoY]
 	}
 	deadPlayerIds = []
-	alivePlayerCount = GameManager.Players.size()
+	alivePlayerCount = GameManager.players.size()
 	sounds = {
 		#"attack": preload("res://sounds/attack.mp3"),
 		#"win": preload("res://sounds/win.mp3"),
 		"lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3")
 	}
 	
-	populate_UI_dictionary.rpc(GameManager.Players)
-	assign_UI_to_players.rpc(GameManager.Players)
-	populate_clickable_button_dictionary.rpc(GameManager.Players)
+	populate_UI_dictionary.rpc(GameManager.players)
+	assign_UI_to_players.rpc(GameManager.players)
+	populate_clickable_button_dictionary.rpc(GameManager.players)
 	
-	hookup_laneButton_handlers.rpc(GameManager.Players)
-	display_starting_hp.rpc(GameManager.Players)
-	display_player_names.rpc(GameManager.Players)
-	for player in GameManager.Players:
-		UpdatePlayerHealthRpc.rpc(GameManager.Players[player].id)
+	hookup_laneButton_handlers.rpc(GameManager.players)
+	display_starting_hp.rpc(GameManager.players)
+	display_player_names.rpc(GameManager.players)
+	for player in GameManager.players:
+		UpdatePlayerHealthRpc.rpc(GameManager.players[player].id)
 	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 
@@ -111,13 +111,13 @@ func resolve_combat():
 		var player2_id = get_player_id_by_color(playerColors[1])
 		if(player1_id == -1 || player2_id == -1): continue
 		var results = decide_victor(laneCombinations[combo][0], laneCombinations[combo][1])
-		GameManager.Players[player1_id].health += results[0]
-		GameManager.Players[player2_id].health += results[1]
-	send_combat_results_to_all_players.rpc(GameManager.Players)
+		GameManager.players[player1_id].health += results[0]
+		GameManager.players[player2_id].health += results[1]
+	send_combat_results_to_all_players.rpc(GameManager.players)
 
 @rpc("any_peer", "call_local")
 func send_combat_results_to_all_players(Players):
-	GameManager.Players = Players;
+	GameManager.players = Players;
 	update_all_player_health(Players);
 	ended_turn_players = [];
 
@@ -189,9 +189,9 @@ func roll_combat_dice(player1Count: int, player2Count: int) -> Dictionary:
 @rpc("any_peer", "call_local")
 func handleAndDisableDeaths():
 	var all_defeated := true  # Assume all are defeated unless we find one alive
-	for player_id in GameManager.Players.keys():
+	for player_id in GameManager.players.keys():
 		unlock_player_unit_selections(player_id)
-		if GameManager.Players[player_id].health <= 0:
+		if GameManager.players[player_id].health <= 0:
 			if player_id not in deadPlayerIds:
 				play_sound.rpc("lose")
 				deadPlayerIds.append(player_id)
@@ -203,8 +203,8 @@ func handleAndDisableDeaths():
 			if UIDictionary.has(player_id):
 				for control in UIDictionary[player_id]:
 					control.modulate = Color(0.5, 0.5, 0.5, 0.7)  # semi-transparent gray
-			if ButtonsUsedToAttackGivenColorDictionary.has(GameManager.Players[player_id].color):
-				for control in ButtonsUsedToAttackGivenColorDictionary[GameManager.Players[player_id].color]:
+			if ButtonsUsedToAttackGivenColorDictionary.has(GameManager.players[player_id].color):
+				for control in ButtonsUsedToAttackGivenColorDictionary[GameManager.players[player_id].color]:
 					control.disabled = true;
 		else:
 			all_defeated = false
@@ -214,9 +214,9 @@ func handleAndDisableDeaths():
 		
 	if(alivePlayerCount == 1):
 		var alivePlayer
-		for player in GameManager.Players:
+		for player in GameManager.players:
 			if player not in deadPlayerIds:
-				alivePlayer = GameManager.Players[player]
+				alivePlayer = GameManager.players[player]
 				showVictoryScreen.rpc(alivePlayer.name)
 
 func lockin_player_unit_selections(player_id):
@@ -295,10 +295,10 @@ func update_lane_label(color: int, suffix: String, new_lane_value: int, new_stor
 @rpc("any_peer", "call_local")
 func on_lane_button_pressed(player_id: int, button_name: String):
 	print(str(multiplayer.get_unique_id()) + " is calling, " + str(player_id) + " is argument")
-	if !GameManager.Players.has(player_id):
+	if !GameManager.players.has(player_id):
 		return
 
-	var color = GameManager.Players[player_id].color
+	var color = GameManager.players[player_id].color
 	var stored_label = MapPlayerToStoredUnitContLabel(color)
 	var stored_count = int(stored_label.text)
 
@@ -321,33 +321,33 @@ func on_lane_button_pressed(player_id: int, button_name: String):
 @rpc("any_peer", "call_local")
 func update_all_player_health(health_data: Dictionary):
 	for player_id in health_data.keys():
-		if GameManager.Players.has(player_id):
-			GameManager.Players[player_id].health = health_data[player_id].health
+		if GameManager.players.has(player_id):
+			GameManager.players[player_id].health = health_data[player_id].health
 			# Now update the health label on UI for this player
-			var color = GameManager.Players[player_id].color
+			var color = GameManager.players[player_id].color
 			var color_str = ConvertColorIntToColorString(color).capitalize()
 			UpdatePlayerHealth(player_id)
 func UpdatePlayerHealth(player):
-		match GameManager.Players[player].color:
+		match GameManager.players[player].color:
 			0:
-				$PlayerRed/LabelRedHP.text = str(GameManager.Players[player].health)
+				$PlayerRed/LabelRedHP.text = str(GameManager.players[player].health)
 			1:
-				$PlayerBlue/LabelBlueHP.text = str(GameManager.Players[player].health)
+				$PlayerBlue/LabelBlueHP.text = str(GameManager.players[player].health)
 			2:
-				$PlayerGreen/LabelGreenHP.text = str(GameManager.Players[player].health)
+				$PlayerGreen/LabelGreenHP.text = str(GameManager.players[player].health)
 			3:
-				$PlayerYellow/LabelYellowHP.text = str(GameManager.Players[player].health)
+				$PlayerYellow/LabelYellowHP.text = str(GameManager.players[player].health)
 @rpc("any_peer", "call_local")
 func UpdatePlayerHealthRpc(player):
-		match GameManager.Players[player].color:
+		match GameManager.players[player].color:
 			0:
-				$PlayerRed/LabelRedHP.text = str(GameManager.Players[player].health)
+				$PlayerRed/LabelRedHP.text = str(GameManager.players[player].health)
 			1:
-				$PlayerBlue/LabelBlueHP.text = str(GameManager.Players[player].health)
+				$PlayerBlue/LabelBlueHP.text = str(GameManager.players[player].health)
 			2:
-				$PlayerGreen/LabelGreenHP.text = str(GameManager.Players[player].health)
+				$PlayerGreen/LabelGreenHP.text = str(GameManager.players[player].health)
 			3:
-				$PlayerYellow/LabelYellowHP.text = str(GameManager.Players[player].health)
+				$PlayerYellow/LabelYellowHP.text = str(GameManager.players[player].health)
 
 func _on_reset_units_button_pressed():
 	var my_id = multiplayer.get_unique_id()
@@ -358,9 +358,9 @@ func reset_all_player_units(Players):
 		reset_player_units.rpc(int(Players[player].id))
 @rpc("any_peer", "call_local")
 func reset_player_units(player_id: int):
-	if not GameManager.Players.has(player_id):
+	if not GameManager.players.has(player_id):
 		return
-	var color = GameManager.Players[player_id].color
+	var color = GameManager.players[player_id].color
 	reset_units_ui.rpc(color)
 @rpc("any_peer", "call_local")
 func reset_units_ui(color: int):
@@ -389,7 +389,7 @@ func notify_end_turn(player_id: int):
 	if ended_turn_players.size() == alivePlayerCount:
 		print("Resolving combat!")
 		resolve_combat()
-		reset_all_player_units.rpc(GameManager.Players)
+		reset_all_player_units.rpc(GameManager.players)
 		handleAndDisableDeaths.rpc()
 
 
@@ -515,11 +515,21 @@ func get_lane_initial_for_color(color: int) -> String:
 		3: return "Y"
 	return ""
 func get_player_id_by_color(color: int) -> int:
-	for player_id in GameManager.Players:
-		if GameManager.Players[player_id].color == color:
+	for player_id in GameManager.players:
+		if GameManager.players[player_id].color == color:
 			return player_id
 	return -1
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
+
+func _on_restart_game_button_pressed():
+	if(GameManager._is_not_server()):
+		return
+	else:
+		request_restart_game()
+
+@rpc("authority")
+func request_restart_game():
+	GameManager.restart_game.rpc()

@@ -1,0 +1,68 @@
+[gd_scene load_steps=2 format=3 uid="uid://cauqphr6p2o0b"]
+
+[ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/HostSetupScene.gd" id="1_1ckpu"]
+
+[node name="HostSetupScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1ckpu")
+
+[node name="PlayerNameInput" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 461.0
+offset_top = 276.0
+offset_right = 691.0
+offset_bottom = 307.0
+
+[node name="BeginGameLobby" type="Button" parent="."]
+layout_mode = 0
+offset_left = 378.0
+offset_top = 448.0
+offset_right = 779.0
+offset_bottom = 535.0
+text = "Begin Game Lobby"
+
+[node name="ColorPicker" type="OptionButton" parent="."]
+layout_mode = 0
+offset_left = 527.0
+offset_top = 358.0
+offset_right = 618.0
+offset_bottom = 394.0
+
+[node name="PlayerNameLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 483.0
+offset_top = 238.0
+offset_right = 666.0
+offset_bottom = 261.0
+text = "Enter your playername:"
+
+[node name="PickColorLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 513.0
+offset_top = 326.0
+offset_right = 696.0
+offset_bottom = 349.0
+text = "Pick your color:"
+
+[node name="ColorPreview" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 461.0
+offset_top = 358.0
+offset_right = 501.0
+offset_bottom = 398.0
+
+[node name="BackToMain" type="Button" parent="."]
+layout_mode = 0
+offset_left = 119.0
+offset_top = 448.0
+offset_right = 342.0
+offset_bottom = 535.0
+text = "Back"
+
+[connection signal="pressed" from="BeginGameLobby" to="." method="_on_ReadyButton_pressed"]
+[connection signal="pressed" from="BackToMain" to="." method="_on_back_to_main_pressed"]

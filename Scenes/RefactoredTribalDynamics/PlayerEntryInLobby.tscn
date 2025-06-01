@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3 uid="uid://yb0snipraf8d"]
+
+[ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/PlayerEntryInLobby.gd" id="1_tgoir"]
+
+[node name="PlayerEntryInLobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_tgoir")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+offset_right = 284.0
+offset_bottom = 53.0
+
+[node name="PlayerName" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ColorPicker" type="OptionButton" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ColorPreview" type="ColorRect" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ReadyLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+text = "Ready?
+"
+
+[node name="ReadyToggle" type="CheckBox" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="Leave" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Leave"
+
+[connection signal="pressed" from="HBoxContainer/ReadyToggle" to="." method="_on_ready_toggle_pressed"]
+[connection signal="pressed" from="HBoxContainer/Leave" to="." method="_on_leave_pressed"]
