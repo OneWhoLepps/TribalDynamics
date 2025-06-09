@@ -78,10 +78,10 @@ script = ExtResource("1_ywyfp")
 [node name="Player1" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 258.0
-offset_top = 136.0
-offset_right = 309.0
-offset_bottom = 169.0
+offset_left = 295.0
+offset_top = 98.0
+offset_right = 346.0
+offset_bottom = 131.0
 
 [node name="StoredUnitCountP1" type="Label" parent="Player1"]
 layout_mode = 0
@@ -91,6 +91,7 @@ offset_right = -8.0
 offset_bottom = 33.0
 
 [node name="Button1o2" type="Button" parent="Player1"]
+visible = false
 z_index = 1
 layout_mode = 0
 offset_left = 4.0
@@ -133,19 +134,19 @@ offset_bottom = 28.0
 
 [node name="LabelP1Playername" type="Label" parent="Player1"]
 layout_mode = 0
-offset_left = -51.0
+offset_left = -27.0
 offset_top = -35.0
-offset_right = 109.0
+offset_right = 133.0
 offset_bottom = -12.0
 text = "Player1Here"
 
 [node name="Player2" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 254.0
-offset_top = 477.0
-offset_right = 309.0
-offset_bottom = 510.0
+offset_left = 292.0
+offset_top = 604.0
+offset_right = 347.0
+offset_bottom = 637.0
 
 [node name="StoredUnitCountP2" type="Label" parent="Player2"]
 layout_mode = 1
@@ -197,19 +198,19 @@ offset_bottom = 28.0
 
 [node name="LabelP2Playername" type="Label" parent="Player2"]
 layout_mode = 0
-offset_left = -51.0
-offset_top = 44.0
-offset_right = 114.0
-offset_bottom = 67.0
+offset_left = -24.0
+offset_top = 46.0
+offset_right = 141.0
+offset_bottom = 69.0
 text = "Player2Here"
 
 [node name="Player3" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 852.0
-offset_top = 477.0
-offset_right = 903.0
-offset_bottom = 510.0
+offset_left = 964.0
+offset_top = 606.0
+offset_right = 1015.0
+offset_bottom = 639.0
 
 [node name="StoredUnitCountP3" type="Label" parent="Player3"]
 visible = false
@@ -263,19 +264,19 @@ offset_bottom = 28.0
 
 [node name="LabelP3Playername" type="Label" parent="Player3"]
 layout_mode = 0
-offset_left = -65.0
+offset_left = -20.0
 offset_top = 44.0
-offset_right = 112.0
+offset_right = 157.0
 offset_bottom = 67.0
 text = "Player3Here"
 
 [node name="Player4" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 852.0
-offset_top = 133.0
-offset_right = 907.0
-offset_bottom = 166.0
+offset_left = 962.0
+offset_top = 98.0
+offset_right = 1017.0
+offset_bottom = 131.0
 
 [node name="StoredUnitCountP4" type="Label" parent="Player4"]
 visible = false
@@ -328,46 +329,46 @@ label_settings = SubResource("LabelSettings_d5qfj")
 
 [node name="LabelP4Playername" type="Label" parent="Player4"]
 layout_mode = 0
-offset_left = -65.0
+offset_left = -18.0
 offset_top = -35.0
-offset_right = 116.0
+offset_right = 163.0
 offset_bottom = -12.0
 text = "Player4Here"
 
 [node name="EndTurn" type="Button" parent="."]
-offset_left = 576.5
-offset_top = 579.0
-offset_right = 654.5
-offset_bottom = 610.0
+offset_left = 687.0
+offset_top = 650.0
+offset_right = 765.0
+offset_bottom = 681.0
 text = "End Turn
 "
 script = SubResource("GDScript_itqip")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(578.5, 322)
-scale = Vector2(1.49202, 0.851316)
+position = Vector2(655, 368)
+scale = Vector2(1.677, 1.26125)
 texture = ExtResource("1_tk7qh")
 
 [node name="ResetUnitsButton" type="Button" parent="."]
-offset_left = 466.5
-offset_top = 579.0
-offset_right = 563.5
-offset_bottom = 610.0
+offset_left = 537.0
+offset_top = 650.0
+offset_right = 634.0
+offset_bottom = 681.0
 text = "Reset Units"
 
 [node name="EveryoneLosesScreen" type="Sprite2D" parent="."]
 visible = false
 z_index = 2
-position = Vector2(599, 363.5)
-scale = Vector2(1.44, 1.40591)
+position = Vector2(640, 362.5)
+scale = Vector2(2.13333, 1.94892)
 texture = ExtResource("3_l3wer")
 
 [node name="OverlayContainer" type="Control" parent="."]
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1157.0
-offset_bottom = 642.0
+offset_right = 1280.0
+offset_bottom = 720.0
 
 [node name="VictoryLabel" type="Label" parent="OverlayContainer"]
 z_index = 4

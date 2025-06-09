@@ -478,24 +478,6 @@ func MapPlayerToStoredUnitContLabel(seatId):
 			return $Player3/StoredUnitCountP3
 		4:
 			return $Player4/StoredUnitCountP4
-#func get_suffix_for_color(color: int, suffix: String) -> String:
-	#match color:
-		#0:  # Red
-			#return "1o" + suffix
-		#1:  # Blue
-			#return "2o" + suffix
-		#2:  # Green
-			#return "3o" + suffix
-		#3:  # Yellow
-			#return "4o" + suffix
-	#return suffix  # fallback
-#func get_lane_initial_for_color(color: int) -> String:
-	#match color:
-		#0: return "1"
-		#1: return "2"
-		#2: return "3"
-		#3: return "4"
-	#return ""
 func get_player_id_by_color(seatAssignment: int) -> int:
 	for player_id in GameManager.players:
 		if GameManager.players[player_id].playerTableAssignment == seatAssignment:
