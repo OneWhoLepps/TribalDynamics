@@ -22,6 +22,7 @@ config/icon="res://Assets/icon.svg"
 Constants="*res://Scripts/RefactoredTribalDynamics/Constants.gd"
 GameManager="*res://Scripts/RefactoredTribalDynamics/GameManager.gd"
 GameNetworkManager="*res://Scripts/RefactoredTribalDynamics/GameNetworkManager.gd"
+CombatMath="*res://Scripts/CombatMath.gd"
 
 [debug]
 
