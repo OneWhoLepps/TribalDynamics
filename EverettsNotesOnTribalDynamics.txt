@@ -1,0 +1,29 @@
+FEATURES LEFT TO IMPLEMENT:
+1) make game window blink when new turn starts, maybe some sound byte
+2) make lobby chatbox take in chat from players
+3) allow race selection per player, including host
+4) if you are out of units and you hit plus, it takes from another lane that is greater than 0
+5) 30 seconds of no end turn, display some message to say "take your turn" and then 15 seconds layer auto do their turn with whatever assignignment theyhave
+
+6) consider case where someone joins while a game is in motion
+7) stash units if you dont expend some
+8) round counter: real player wins after x many round wins
+
+
+special abilities:
+-get two more units next round (barbarians)
+-all rolls are 7 next round (knights)
+-steal 1d3 hp from a lane (leech lich)
+-reflect all damage frm a lane (snails)
+
+
+
+NICE TO HAVES (not necessary for MVP):
+--maybe add currency between certain lines that incentivizes players to attack each other
+---and in between rounds players can spend currency for consumable items - all players can see all consummables
+
+
+-4 generals, 4 colors
+-background map
+-normal asset guys
+-UIs: textures for all of the menu items
