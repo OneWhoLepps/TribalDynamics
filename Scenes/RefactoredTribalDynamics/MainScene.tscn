@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3 uid="uid://csu3gmiv2ib54"]
+
+[ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/MainScene.gd" id="1_hohkm"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xpesv"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2f7vp"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_a4rm1"]
+font_size = 36
+
+[node name="BaseControl" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hohkm")
+
+[node name="HostButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 407.0
+offset_right = 481.0
+offset_bottom = 458.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_xpesv")
+text = "Host Game"
+
+[node name="JoinButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 675.0
+offset_top = 407.0
+offset_right = 830.0
+offset_bottom = 458.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_2f7vp")
+text = "Join Game"
+
+[node name="WelcomeLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 71.0
+offset_right = 827.0
+offset_bottom = 227.0
+text = "Welcome to Tribal Dynamics!
+
+Made w/ love by Ev"
+label_settings = SubResource("LabelSettings_a4rm1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = -1
+position = Vector2(576, 324)
+scale = Vector2(1.59116, 0.576512)
+
+[connection signal="pressed" from="HostButton" to="." method="_on_HostButton_pressed"]
+[connection signal="pressed" from="JoinButton" to="." method="_on_JoinButton_pressed"]

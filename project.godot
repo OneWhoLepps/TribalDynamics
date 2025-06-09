@@ -11,10 +11,25 @@ config_version=5
 [application]
 
 config/name="Tribal Dynamics"
-run/main_scene="res://Scenes/TutorialLobbyScene.tscn"
+run/main_scene="res://Scenes/RefactoredTribalDynamics/MainScene.tscn"
 config/features=PackedStringArray("4.2", "GL Compatibility")
+boot_splash/show_image=false
+boot_splash/fullsize=false
 config/icon="res://Assets/icon.svg"
 
 [autoload]
 
-GameManager="*res://Scripts/GameManager.gd"
+Constants="*res://Scripts/RefactoredTribalDynamics/Constants.gd"
+GameManager="*res://Scripts/RefactoredTribalDynamics/GameManager.gd"
+GameNetworkManager="*res://Scripts/RefactoredTribalDynamics/GameNetworkManager.gd"
+CombatMath="*res://Scripts/CombatMath.gd"
+
+[debug]
+
+shapes/defaults/default_clear_color=Color(0.192157, 0.584314, 0.203922, 0.392157)
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/resizable=false
