@@ -266,10 +266,20 @@ func hookup_laneButton_handlers(Players):
 				hookup_button(button, Players[player_id].id)
 				
 func hookup_button(button, player_multiplayer_id):
-	var callable = Callable(self, "_on_lane_button_pressed_wrapper").bind(button.name, player_multiplayer_id)
-	if not button.is_connected("pressed", callable):
-		button.pressed.connect(callable)
-		
+	var callable = Callable(self, "_on_lane_button_input").bind(button.name, player_multiplayer_id)
+	if not button.is_connected("gui_input", callable):
+		button.gui_input.connect(callable)
+
+func _on_lane_button_input(event: InputEvent, button_name: String, player_multiplayer_id: int) -> void:
+	if player_multiplayer_id != multiplayer.get_unique_id():
+		return
+
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			on_lane_button_right_clicked.rpc_id(1, multiplayer.get_unique_id(), button_name)
+			
 #each lane button is rigged to tell server "hey, this player clicked me"
 func _on_lane_button_pressed_wrapper(button_name: String, player_multiplayer_id: int):
 	if player_multiplayer_id != multiplayer.get_unique_id():
@@ -287,7 +297,6 @@ func update_lane_label(seatId: int, suffix: String, new_lane_value: int, new_sto
 	
 @rpc("any_peer", "call_local")
 func on_lane_button_pressed(player_id: int, button_name: String):
-	print(str(multiplayer.get_unique_id()) + " is calling, " + str(player_id) + " is argument")
 	if !GameManager.players.has(player_id):
 		return
 
@@ -311,6 +320,27 @@ func on_lane_button_pressed(player_id: int, button_name: String):
 
 	update_lane_label.rpc(playerSeatId, suffix, int(count_label.text), stored_count - 1)
 	update_lane_label(playerSeatId, suffix, int(count_label.text), stored_count - 1)
+
+@rpc("any_peer", "call_local")
+func on_lane_button_right_clicked(player_id: int, button_name: String):
+	if !GameManager.players.has(player_id):
+		return
+
+	var playerSeatId = GameManager.players[player_id].playerTableAssignment
+	var stored_label = MapPlayerToStoredUnitContLabel(playerSeatId)
+	var stored_count = int(stored_label.text)
+
+	var suffix = button_name.substr(button_name.length() - 3)
+	var count_label = get_node("Player" + str(playerSeatId) + "/" + button_name)
+
+	if count_label:
+		var current_val = int(count_label.text)
+		if current_val > 0:
+			count_label.text = str(current_val - 1)
+			stored_label.text = str(stored_count + 1)
+
+			update_lane_label.rpc(playerSeatId, suffix, current_val - 1, stored_count + 1)
+			update_lane_label(playerSeatId, suffix, current_val - 1, stored_count + 1)
 
 @rpc("any_peer", "call_local")
 func update_all_player_health(health_data: Dictionary):

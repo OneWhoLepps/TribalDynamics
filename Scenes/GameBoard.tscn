@@ -186,6 +186,7 @@ offset_top = -109.0
 offset_right = 245.0
 offset_bottom = -78.0
 disabled = true
+button_mask = 3
 text = "0"
 
 [node name="LabelP2HP" type="Label" parent="Player2"]
