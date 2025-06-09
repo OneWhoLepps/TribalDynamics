@@ -90,7 +90,6 @@ func unlock_player_unit_selections(player_id):
 	enable_given_player_reset_units_button.rpc_id(player_id)
 	pass
 
-				
 func hookup_button(button, player_multiplayer_id):
 	var callable = Callable(self, "_on_lane_button_input").bind(button.name, player_multiplayer_id)
 	if not button.is_connected("gui_input", callable):
@@ -105,23 +104,19 @@ func _on_lane_button_input(event: InputEvent, button_name: String, player_multip
 			on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			on_lane_button_right_clicked.rpc_id(1, multiplayer.get_unique_id(), button_name)
-			
 
 func _on_lane_button_pressed_wrapper(button_name: String, player_multiplayer_id: int):
 	if player_multiplayer_id != multiplayer.get_unique_id():
 		return
 	on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
-	
 
 func _on_reset_units_button_pressed():
 	var my_id = multiplayer.get_unique_id()
 	reset_player_units.rpc_id(1, my_id)
 
-
 func _on_end_turn_pressed():
 	var my_id = multiplayer.get_unique_id()
 	notify_end_turn.rpc_id(1, my_id)
-	
 
 func _on_restart_game_button_pressed():
 	if(GameManager._is_not_server()):
