@@ -1,9 +1,9 @@
 extends Node
 
-var RedPlayerUI
-var BluePlayerUI
-var GreenPlayerUI
-var YellowPlayerUI
+var Player1UI
+var Player2UI
+var Player3UI
+var Player4UI
 var UIDictionary
 
 var PlayerClickableButtons
@@ -18,51 +18,39 @@ var alivePlayerCount
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	RedPlayerUI = [
-		$PlayerRed/ButtonRoY, 
-		$PlayerRed/ButtonRoB, 
-		$PlayerRed/ButtonRoG,
-		$PlayerRed/StoredUnitCountRed,
-		$PlayerRed/RoYCount,
-		$PlayerRed/RoGCount,
-		$PlayerRed/RoBCount
+	Player1UI = [
+		$Player1/Button1o2, 
+		$Player1/Button1o3, 
+		$Player1/Button1o4,
+		$Player1/StoredUnitCountP1,
 	]
-	BluePlayerUI = [
-		$PlayerBlue/ButtonBoY, 
-		$PlayerBlue/ButtonBoR, 
-		$PlayerBlue/ButtonBoG,
-		$PlayerBlue/StoredUnitCountBlue,
-		$PlayerBlue/BoGCount,
-		$PlayerBlue/BoYCount,
-		$PlayerBlue/BoRCount
+	Player2UI = [
+		$Player2/Button2o1, 
+		$Player2/Button2o3, 
+		$Player2/Button2o4,
+		$Player2/StoredUnitCountP2,
 		]
-	GreenPlayerUI = [
-		$PlayerGreen/ButtonGoY, 
-		$PlayerGreen/ButtonGoB, 
-		$PlayerGreen/ButtonGoR,
-		$PlayerGreen/StoredUnitCountGreen,
-		$PlayerGreen/GoYCount,
-		$PlayerGreen/GoBCount,
-		$PlayerGreen/GoRCount
+	Player3UI = [
+		$Player3/Button3o1, 
+		$Player3/Button3o2, 
+		$Player3/Button3o4,
+		$Player3/StoredUnitCountP3,
 	]
-	YellowPlayerUI = [
-		$PlayerYellow/ButtonYoR, 
-		$PlayerYellow/ButtonYoB, 
-		$PlayerYellow/ButtonYoG,
-		$PlayerYellow/StoredUnitCountYellow,
-		$PlayerYellow/YoGCount,
-		$PlayerYellow/YoRCount,
-		$PlayerYellow/YoBCount
+	Player4UI = [
+		$Player4/Button4o1, 
+		$Player4/Button4o2, 
+		$Player4/Button4o3,
+		$Player4/StoredUnitCountP4,
 	]
 	UIDictionary = {}
 	PlayernameTextDictionary = {}
 	PlayerHpLabelDictionary = {}
 	PlayerClickableButtons = {}
 	ButtonsUsedToAttackGivenColorDictionary = {
-		0: [$PlayerBlue/ButtonBoR, $PlayerYellow/ButtonYoR, $PlayerGreen/ButtonGoR],
-		1: [$PlayerRed/ButtonRoB, $PlayerYellow/ButtonYoB, $PlayerGreen/ButtonGoB],
-		2: [$PlayerRed/ButtonRoG, $PlayerBlue/ButtonBoG, $PlayerYellow/ButtonYoG],
-		3: [$PlayerRed/ButtonRoY, $PlayerBlue/ButtonBoY, $PlayerGreen/ButtonGoY]
+		0: [$Player2/Button2o1, $Player4/Button4o1, $Player3/Button3o1],
+		1: [$Player1/Button1o2, $Player4/Button4o2, $Player3/Button3o2],
+		2: [$Player1/Button1o3, $Player2/Button2o3, $Player4/Button4o3],
+		3: [$Player1/Button1o4, $Player2/Button2o4, $Player3/Button3o4]
 	}
 	deadPlayerIds = []
 	alivePlayerCount = GameManager.players.size()
@@ -73,9 +61,8 @@ func _ready():
 	}
 	
 	populate_UI_dictionary.rpc(GameManager.players)
-	assign_UI_to_players.rpc(GameManager.players)
-	populate_clickable_button_dictionary.rpc(GameManager.players)
-	
+	#each player's gameboard will do this!
+	#
 	hookup_laneButton_handlers.rpc(GameManager.players)
 	display_starting_hp.rpc(GameManager.players)
 	display_player_names.rpc(GameManager.players)
@@ -84,6 +71,8 @@ func _ready():
 	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 
+#do this to make all non-player-owned UI invisible to that player.
+#E.G. hiding all "non p1 player" buttons for p1
 @rpc("any_peer", "call_local")
 func assign_UI_to_players(Players):
 	for player_id in UIDictionary.keys():
@@ -96,21 +85,21 @@ func assign_UI_to_players(Players):
 				control.disabled = not is_local_player
 
 func resolve_combat():
-	var laneCombinations = {
-		"RedBlue": [$PlayerRed/RoBCount.text, $PlayerBlue/BoRCount.text],
-		"RedYellow": [$PlayerRed/RoYCount.text, $PlayerYellow/YoRCount.text],
-		"RedGreen": [$PlayerRed/RoGCount.text, $PlayerGreen/GoRCount.text],
-		"YellowBlue": [$PlayerYellow/YoBCount.text, $PlayerBlue/BoYCount.text],
-		"YellowGreen" : [$PlayerYellow/YoGCount.text, $PlayerGreen/GoYCount.text],
-		"BlueGreen": [$PlayerBlue/BoGCount.text, $PlayerGreen/GoBCount.text]
+	var streets = {
+		"12": [$Player1/Button1o2.text, $Player2/Button2o1.text],
+		"14": [$Player1/Button1o4.text, $Player4/Button4o1.text],
+		"13": [$Player1/Button1o3.text, $Player3/Button3o1.text],
+		"42": [$Player4/Button4o2.text, $Player2/Button2o4.text],
+		"43" : [$Player4/Button4o3.text, $Player3/Button3o4.text],
+		"23": [$Player2/Button2o3.text, $Player3/Button3o2.text]
 	}
 	
-	for combo in laneCombinations:
-		var playerColors = ConvertLaneToPlayerColor(combo)
+	for roadway in streets:
+		var playerColors = ConvertStreetToCombatants(roadway)
 		var player1_id = get_player_id_by_color(playerColors[0])
 		var player2_id = get_player_id_by_color(playerColors[1])
 		if(player1_id == -1 || player2_id == -1): continue
-		var results = decide_victor(laneCombinations[combo][0], laneCombinations[combo][1])
+		var results = decide_victor(streets[roadway][0], streets[roadway][1])
 		GameManager.players[player1_id].health += results[0]
 		GameManager.players[player2_id].health += results[1]
 	send_combat_results_to_all_players.rpc(GameManager.players)
@@ -274,80 +263,84 @@ func hookup_laneButton_handlers(Players):
 	for player_id in Players.keys():
 		if player_id == my_id:
 			for button in PlayerClickableButtons[player_id]:
-				hookup_button(button, Players[player_id].id, Players[player_id].color)
-func hookup_button(button, player_multiplayer_id, color):
-	var callable = Callable(self, "_on_lane_button_pressed_wrapper").bind(player_multiplayer_id, button.name)
-
+				hookup_button(button, Players[player_id].id)
+				
+func hookup_button(button, player_multiplayer_id):
+	var callable = Callable(self, "_on_lane_button_pressed_wrapper").bind(button.name, player_multiplayer_id)
 	if not button.is_connected("pressed", callable):
 		button.pressed.connect(callable)
-func _on_lane_button_pressed_wrapper(player_multiplayer_id: int, button_name: String):
+		
+#each lane button is rigged to tell server "hey, this player clicked me"
+func _on_lane_button_pressed_wrapper(button_name: String, player_multiplayer_id: int):
 	if player_multiplayer_id != multiplayer.get_unique_id():
 		return
 	on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
+	
 @rpc("any_peer")
-func update_lane_label(color: int, suffix: String, new_lane_value: int, new_stored_value: int):
-	var count_label = get_node_or_null("Player" + ConvertColorIntToColorString(color).capitalize() + "/" + suffix + "Count")
-	if count_label and count_label is Label:
+func update_lane_label(seatId: int, suffix: String, new_lane_value: int, new_stored_value: int):
+	var count_label = get_node("Player" + str(seatId) + "/Button" + suffix)
+	if count_label:
 		count_label.text = str(new_lane_value)
 
-	var stored_label = MapPlayerToStoredUnitContLabel(color)
+	var stored_label = MapPlayerToStoredUnitContLabel(seatId)
 	stored_label.text = str(new_stored_value)
+	
 @rpc("any_peer", "call_local")
 func on_lane_button_pressed(player_id: int, button_name: String):
 	print(str(multiplayer.get_unique_id()) + " is calling, " + str(player_id) + " is argument")
 	if !GameManager.players.has(player_id):
 		return
 
-	var color = GameManager.players[player_id].color
-	var stored_label = MapPlayerToStoredUnitContLabel(color)
+	#TODO: make this work even if you dont have any units in store, take from
+	#other lanes
+	var playerSeatId = GameManager.players[player_id].playerTableAssignment
+	var stored_label = MapPlayerToStoredUnitContLabel(playerSeatId)
 	var stored_count = int(stored_label.text)
 
 	if stored_count <= 0:
 		return
 
-	var suffix = button_name.substr(button_name.length() - 3) # "RoY", "BoR", etc.
-	var count_label = get_node_or_null("Player" + ConvertColorIntToColorString(color).capitalize() + "/" + suffix + "Count")
+	var suffix = button_name.substr(button_name.length() - 3)
+	var count_label = get_node("Player"+str(playerSeatId)+"/"+button_name)
 
-	if count_label and count_label is Label:
+	if count_label:
 		var current_val = int(count_label.text)
 		count_label.text = str(current_val + 1)
 
 	stored_label.text = str(stored_count - 1)
 
-	# Broadcast to all peers to sync UI
-	update_lane_label.rpc(color, suffix, int(count_label.text), stored_count - 1)
-	update_lane_label(color, suffix, int(count_label.text), stored_count - 1)
+	update_lane_label.rpc(playerSeatId, suffix, int(count_label.text), stored_count - 1)
+	update_lane_label(playerSeatId, suffix, int(count_label.text), stored_count - 1)
 
 @rpc("any_peer", "call_local")
 func update_all_player_health(health_data: Dictionary):
 	for player_id in health_data.keys():
 		if GameManager.players.has(player_id):
 			GameManager.players[player_id].health = health_data[player_id].health
-			# Now update the health label on UI for this player
-			var color = GameManager.players[player_id].color
-			var color_str = ConvertColorIntToColorString(color).capitalize()
+			var seat = GameManager.players[player_id].playerTableAssignment
 			UpdatePlayerHealth(player_id)
+			
 func UpdatePlayerHealth(player):
-		match GameManager.players[player].color:
-			0:
-				$PlayerRed/LabelRedHP.text = str(GameManager.players[player].health)
+		match GameManager.players[player].playerTableAssignment:
 			1:
-				$PlayerBlue/LabelBlueHP.text = str(GameManager.players[player].health)
+				$Player1/LabelP1HP.text = str(GameManager.players[player].health)
 			2:
-				$PlayerGreen/LabelGreenHP.text = str(GameManager.players[player].health)
+				$Player2/LabelP2HP.text = str(GameManager.players[player].health)
 			3:
-				$PlayerYellow/LabelYellowHP.text = str(GameManager.players[player].health)
+				$Player3/LabelP3HP.text = str(GameManager.players[player].health)
+			4:
+				$Player4/LabelP4HP.text = str(GameManager.players[player].health)
 @rpc("any_peer", "call_local")
 func UpdatePlayerHealthRpc(player):
-		match GameManager.players[player].color:
-			0:
-				$PlayerRed/LabelRedHP.text = str(GameManager.players[player].health)
+		match GameManager.players[player].playerTableAssignment:
 			1:
-				$PlayerBlue/LabelBlueHP.text = str(GameManager.players[player].health)
+				$Player1/LabelP1HP.text = str(GameManager.players[player].health)
 			2:
-				$PlayerGreen/LabelGreenHP.text = str(GameManager.players[player].health)
+				$Player2/LabelP2HP.text = str(GameManager.players[player].health)
 			3:
-				$PlayerYellow/LabelYellowHP.text = str(GameManager.players[player].health)
+				$Player3/LabelP3HP.text = str(GameManager.players[player].health)
+			4:
+				$Player4/LabelP4HP.text = str(GameManager.players[player].health)
 
 func _on_reset_units_button_pressed():
 	var my_id = multiplayer.get_unique_id()
@@ -360,20 +353,18 @@ func reset_all_player_units(Players):
 func reset_player_units(player_id: int):
 	if not GameManager.players.has(player_id):
 		return
-	var color = GameManager.players[player_id].color
-	reset_units_ui.rpc(color)
+	var seat = GameManager.players[player_id].playerTableAssignment
+	reset_units_ui.rpc(seat)
 @rpc("any_peer", "call_local")
-func reset_units_ui(color: int):
-	var stored_label = MapPlayerToStoredUnitContLabel(color)
+func reset_units_ui(seatAssignment):
+	var stored_label = MapPlayerToStoredUnitContLabel(seatAssignment)
 	stored_label.text = "3"
 
-	var group_name = ConvertColorIntToColorString(color).capitalize()
-	var player_node = get_node("Player" + group_name)
+	var player_node = get_node("Player" + str(seatAssignment))
 
-	for label in player_node.get_children():
-		if label.name.ends_with("Count") and label.name != "StoredUnitCount" + group_name:
-			if label is Label:
-				label.text = "0"
+	for control in player_node.get_children():
+		if control.name.contains("Button") && control is Button:
+			control.text = "0"
 
 func _on_end_turn_pressed():
 	var my_id = multiplayer.get_unique_id()
@@ -396,127 +387,118 @@ func notify_end_turn(player_id: int):
 @rpc("any_peer", "call_local")
 func populate_UI_dictionary(Players):
 	for player in Players.keys():
-		UIDictionary[player] = ConvertColorToDisplayedUI(Players[player].color)
-#have dictionary of each player with each unique clickable button of said player
-@rpc("any_peer", "call_local")
-func populate_clickable_button_dictionary(Players):
-	for player in Players.keys():
-		PlayerClickableButtons[player] = ConvertColorToClickableButtons(Players[player].color)
+		UIDictionary[player] = ConvertSeatIdToDisplayedUI(Players[player].playerTableAssignment)
+		PlayerClickableButtons[player] = ConvertPlayerSeatToClickableButtons(Players[player].playerTableAssignment)
 		
-@rpc("any_peer", "call_local")
-func populate_player_health_dictionary(Players):
-	for player in Players.keys():
-		PlayerClickableButtons[player] = ConvertColorToClickableButtons(Players[player].color)
+	for player_id in UIDictionary.keys():
+		var is_local_player = player_id == multiplayer.get_unique_id()
+		for control in UIDictionary[player_id]:
+			if control is Label:
+				control.visible = is_local_player
+			else:
+				control.visible = is_local_player
+				control.disabled = not is_local_player
+		
 
 @rpc("any_peer", "call_local")
 func display_starting_hp(Players):
 	for player in Players.keys():
-		var labelControl = MapPlayerColorToHpLabel(Players[player].color)
+		var labelControl = MapPlayerToHpLabel(Players[player].playerTableAssignment)
 		labelControl.text = str(Players[player].health)
-		var storedUnitCount = MapPlayerToStoredUnitContLabel(Players[player].color)
+		var storedUnitCount = MapPlayerToStoredUnitContLabel(Players[player].playerTableAssignment)
 		storedUnitCount.text = "3"
 @rpc("any_peer", "call_local")
 func display_player_names(Players):
 	for player in Players.keys():
-		var labelControl = MapPlayerToPlayernameLabel(Players[player].color)
+		var labelControl = MapPlayerToPlayernameLabel(Players[player].playerTableAssignment)
 		labelControl.text = Players[player].name
+func ConvertPlayerSeatToClickableButtons(seatId):
+	match(seatId):
+		1:
+			return [$Player1/Button1o2, $Player1/Button1o3, $Player1/Button1o4]
+		2:
+			return [$Player2/Button2o1, $Player2/Button2o3, $Player2/Button2o4]
+		3:
+			return [$Player3/Button3o1, $Player3/Button3o2, $Player3/Button3o4]
+		4:
+			return [$Player4/Button4o1, $Player4/Button4o2, $Player4/Button4o3]
 
-func ConvertColorIntToColorString(colorInt):
-	match(colorInt):
-		0:
-			return "red"
+func ConvertSeatIdToDisplayedUI(seatId):
+	match(seatId):
 		1:
-			return "blue"
+			return Player1UI
 		2:
-			return "green"
+			return Player2UI
 		3:
-			return "yellow"
-func ConvertColorToClickableButtons(colorInt):
-	match(colorInt):
-		0:
-			return [$PlayerRed/ButtonRoB, $PlayerRed/ButtonRoG, $PlayerRed/ButtonRoY]
-		1:
-			return [$PlayerBlue/ButtonBoR, $PlayerBlue/ButtonBoG, $PlayerBlue/ButtonBoY]
-		2:
-			return [$PlayerGreen/ButtonGoR, $PlayerGreen/ButtonGoB, $PlayerGreen/ButtonGoY]
-		3:
-			return [$PlayerYellow/ButtonYoR, $PlayerYellow/ButtonYoG, $PlayerYellow/ButtonYoB]
-
-func ConvertColorToDisplayedUI(colorInt):
-	match(colorInt):
-		0:
-			return RedPlayerUI
-		1:
-			return BluePlayerUI
-		2:
-			return GreenPlayerUI
-		3:
-			return YellowPlayerUI
-func ConvertLaneToPlayerColor(laneName):
+			return Player3UI
+		4:
+			return Player4UI
+			
+func ConvertStreetToCombatants(laneName):
 	match(laneName):
-		"RedBlue": 
-			return [0, 1]
-		"RedYellow": 
-			return [0, 3]
-		"RedGreen": 
-			return [0, 2]
-		"YellowBlue": 
-			return [3, 1]
-		"YellowGreen" : 
-			return [3, 2]
-		"BlueGreen": 
+		"12": 
 			return [1, 2]
-func MapPlayerColorToHpLabel(colorInt):
-	match(colorInt):
-		0:
-			return $PlayerRed/LabelRedHP
+		"14": 
+			return [1, 4]
+		"13": 
+			return [1, 3]
+		"42": 
+			return [4, 2]
+		"43" : 
+			return [4, 3]
+		"23": 
+			return [2, 3]
+func MapPlayerToHpLabel(seatId):
+	match(seatId):
 		1:
-			return $PlayerBlue/LabelBlueHP
+			return $Player1/LabelP1HP
 		2:
-			return $PlayerGreen/LabelGreenHP
+			return $Player2/LabelP2HP
 		3:
-			return $PlayerYellow/LabelYellowHP
-func MapPlayerToPlayernameLabel(colorInt):
-	match(colorInt):
-		0:
-			return $PlayerRed/LabelRedPlayername
+			return $Player3/LabelP3HP
+		4:
+			return $Player4/LabelP4HP
+func MapPlayerToPlayernameLabel(seatId):
+	match(seatId):
 		1:
-			return $PlayerBlue/LabelBluePlayername
+			return $Player1/LabelP1Playername
 		2:
-			return $PlayerGreen/LabelGreenPlayername
+			return $Player2/LabelP2Playername
 		3:
-			return $PlayerYellow/LabelYellowPlayername
-func MapPlayerToStoredUnitContLabel(colorInt):
-	match(colorInt):
-		0:
-			return $PlayerRed/StoredUnitCountRed
+			return $Player3/LabelP3Playername
+		4:
+			return $Player4/LabelP4Playername
+func MapPlayerToStoredUnitContLabel(seatId):
+	match(seatId):
 		1:
-			return $PlayerBlue/StoredUnitCountBlue
+			return $Player1/StoredUnitCountP1
 		2:
-			return $PlayerGreen/StoredUnitCountGreen
+			return $Player2/StoredUnitCountP2
 		3:
-			return $PlayerYellow/StoredUnitCountYellow
-func get_suffix_for_color(color: int, suffix: String) -> String:
-	match color:
-		0:  # Red
-			return "Ro" + suffix
-		1:  # Blue
-			return "Bo" + suffix
-		2:  # Green
-			return "Go" + suffix
-		3:  # Yellow
-			return "Yo" + suffix
-	return suffix  # fallback
-func get_lane_initial_for_color(color: int) -> String:
-	match color:
-		0: return "R"
-		1: return "B"
-		2: return "G"
-		3: return "Y"
-	return ""
-func get_player_id_by_color(color: int) -> int:
+			return $Player3/StoredUnitCountP3
+		4:
+			return $Player4/StoredUnitCountP4
+#func get_suffix_for_color(color: int, suffix: String) -> String:
+	#match color:
+		#0:  # Red
+			#return "1o" + suffix
+		#1:  # Blue
+			#return "2o" + suffix
+		#2:  # Green
+			#return "3o" + suffix
+		#3:  # Yellow
+			#return "4o" + suffix
+	#return suffix  # fallback
+#func get_lane_initial_for_color(color: int) -> String:
+	#match color:
+		#0: return "1"
+		#1: return "2"
+		#2: return "3"
+		#3: return "4"
+	#return ""
+func get_player_id_by_color(seatAssignment: int) -> int:
 	for player_id in GameManager.players:
-		if GameManager.players[player_id].color == color:
+		if GameManager.players[player_id].playerTableAssignment == seatAssignment:
 			return player_id
 	return -1
 

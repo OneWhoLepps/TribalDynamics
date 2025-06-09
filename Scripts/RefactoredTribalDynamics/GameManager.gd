@@ -49,14 +49,17 @@ func get_chat_history():
 func add_player(id: int, name: String, color: int):
 	if players.has(id):
 		return
-
+	var playerTableSeatId = 1;
+	if(!players.is_empty()):
+		playerTableSeatId = players.size() + 1
 	players[id] = {
 		"id": id,
 		"name": name,
-		"color": color,
+		"color": color,#this is gonna turn into "race" or something similar
 		"health": startingHealth,
 		"stored_units": startingStoredUnits,
 		"ready": false,
+		"playerTableAssignment": playerTableSeatId
 	}
 	emit_signal(Constants.SIGNAL_PLAYER_ADDED, players[id])
 
