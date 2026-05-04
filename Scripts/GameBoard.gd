@@ -1,328 +1,263 @@
 extends Node
 
-var Player1UI
-var Player2UI
-var Player3UI
-var Player4UI
 var ended_turn_players = []
-var deadPlayerIds = []
+var dead_player_ids = []
+var alive_player_count: int
+var sounds: Dictionary
 
-var UIDictionary = {}
-var PlayerClickableButtons = {}
-var ButtonsUsedToAttackGivenPlayerDictionary = {}
-
-const minimumStoredUnitCount = 0
-
-var sounds
-var alivePlayerCount
-
-# Called when the node enters the scene tree for the first time.
 func _ready():
-	Player1UI = [
-		$Player1/Button1o2, 
-		$Player1/Button1o3, 
-		$Player1/Button1o4,
-		$Player1/StoredUnitCountP1,
-	]
-	Player2UI = [
-		$Player2/Button2o1, 
-		$Player2/Button2o3, 
-		$Player2/Button2o4,
-		$Player2/StoredUnitCountP2,
-		]
-	Player3UI = [
-		$Player3/Button3o1, 
-		$Player3/Button3o2, 
-		$Player3/Button3o4,
-		$Player3/StoredUnitCountP3,
-	]
-	Player4UI = [
-		$Player4/Button4o1, 
-		$Player4/Button4o2, 
-		$Player4/Button4o3,
-		$Player4/StoredUnitCountP4,
-	]
-	ButtonsUsedToAttackGivenPlayerDictionary = {
-		1: [$Player2/Button2o1, $Player4/Button4o1, $Player3/Button3o1],
-		2: [$Player1/Button1o2, $Player4/Button4o2, $Player3/Button3o2],
-		3: [$Player1/Button1o3, $Player2/Button2o3, $Player4/Button4o3],
-		4: [$Player1/Button1o4, $Player2/Button2o4, $Player3/Button3o4]
-	}
-	alivePlayerCount = GameManager.players.size()
+	alive_player_count = GameManager.players.size()
 	sounds = {
-		#"attack": preload("res://sounds/attack.mp3"),
-		#"win": preload("res://sounds/win.mp3"),
 		"lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3")
 	}
-	
-	prepare_UI_per_player.rpc(GameManager.players)
-	hookup_laneButton_handlers.rpc(GameManager.players)
-	for player in GameManager.players:
-		InitializePlayerHPLabel.rpc(GameManager.players[player].id)
+	setup_board.rpc(GameManager.players)
+	hookup_lane_button_handlers.rpc(GameManager.players)
 	$ResetUnitsButton.pressed.connect(_on_reset_units_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 
-func resolve_combat():
-	var streets = {
-		"12": [$Player1/Button1o2.text, $Player2/Button2o1.text],
-		"14": [$Player1/Button1o4.text, $Player4/Button4o1.text],
-		"13": [$Player1/Button1o3.text, $Player3/Button3o1.text],
-		"42": [$Player4/Button4o2.text, $Player2/Button2o4.text],
-		"43" : [$Player4/Button4o3.text, $Player3/Button3o4.text],
-		"23": [$Player2/Button2o3.text, $Player3/Button3o2.text]
-	}
-	
-	for roadway in streets:
-		var playerCombatants = ConvertStreetToCombatants(roadway)
-		var player1_id = get_player_id_by_seat(playerCombatants[0])
-		var player2_id = get_player_id_by_seat(playerCombatants[1])
-		if(player1_id == -1 || player2_id == -1): continue
-		var results = CombatMath.decide_victor(streets[roadway][0], streets[roadway][1])
-		GameManager.players[player1_id].health += results[0]
-		GameManager.players[player2_id].health += results[1]
-	send_combat_results_to_all_players.rpc(GameManager.players)
+# --- Node helpers ---
 
-func lockin_player_unit_selections(player_id):
+func get_hp_label(seat: int) -> Label:
+	return get_node("Player%d/LabelP%dHP" % [seat, seat])
+
+func get_name_label(seat: int) -> Label:
+	return get_node("Player%d/LabelP%dPlayername" % [seat, seat])
+
+func get_stored_unit_label(seat: int) -> Label:
+	return get_node("Player%d/StoredUnitCountP%d" % [seat, seat])
+
+func get_lane_buttons_for_seat(seat: int) -> Array:
+	var result = []
+	for child in get_node("Player%d" % seat).get_children():
+		if child is Button:
+			result.append(child)
+	return result
+
+func get_buttons_targeting_seat(target_seat: int) -> Array:
+	var result = []
+	for player in GameManager.players.values():
+		var src = player.playerTableAssignment
+		if src == target_seat:
+			continue
+		var btn = get_node_or_null("Player%d/Button%do%d" % [src, src, target_seat])
+		if btn:
+			result.append(btn)
+	return result
+
+# --- Helpers ---
+
+func get_player_id_by_seat(seat: int) -> int:
+	for player_id in GameManager.players:
+		if GameManager.players[player_id].playerTableAssignment == seat:
+			return player_id
+	return -1
+
+func lockin_player_unit_selections(player_id: int):
 	disable_given_player_end_turn_button.rpc_id(player_id)
 	disable_given_player_reset_units_button.rpc_id(player_id)
-func unlock_player_unit_selections(player_id):
+
+func unlock_player_unit_selections(player_id: int):
 	enable_given_player_end_turn_button.rpc_id(player_id)
 	enable_given_player_reset_units_button.rpc_id(player_id)
-	pass
 
-func hookup_button(button, player_multiplayer_id):
+func hookup_button(button: Button, player_multiplayer_id: int):
 	var callable = Callable(self, "_on_lane_button_input").bind(button.name, player_multiplayer_id)
 	if not button.is_connected("gui_input", callable):
 		button.gui_input.connect(callable)
 
-func _on_lane_button_input(event: InputEvent, button_name: String, player_multiplayer_id: int) -> void:
+func reset_units_for_seat(seat: int):
+	get_stored_unit_label(seat).text = str(GameManager.startingStoredUnits)
+	for btn in get_lane_buttons_for_seat(seat):
+		btn.text = "0"
+
+# --- Input ---
+
+func _on_lane_button_input(event: InputEvent, button_name: String, player_multiplayer_id: int):
 	if player_multiplayer_id != multiplayer.get_unique_id():
 		return
-
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			on_lane_button_right_clicked.rpc_id(1, multiplayer.get_unique_id(), button_name)
 
-func _on_lane_button_pressed_wrapper(button_name: String, player_multiplayer_id: int):
-	if player_multiplayer_id != multiplayer.get_unique_id():
-		return
-	on_lane_button_pressed.rpc_id(1, multiplayer.get_unique_id(), button_name)
-
 func _on_reset_units_button_pressed():
-	var my_id = multiplayer.get_unique_id()
-	reset_player_units.rpc_id(1, my_id)
+	reset_player_units.rpc_id(1, multiplayer.get_unique_id())
 
 func _on_end_turn_pressed():
-	var my_id = multiplayer.get_unique_id()
-	notify_end_turn.rpc_id(1, my_id)
+	notify_end_turn.rpc_id(1, multiplayer.get_unique_id())
 
 func _on_restart_game_button_pressed():
-	if(GameManager._is_not_server()):
+	if GameManager._is_not_server():
 		return
-	else:
-		request_restart_game()
+	request_restart_game()
 
-func get_player_id_by_seat(seatAssignment: int) -> int:
-	for player_id in GameManager.players:
-		if GameManager.players[player_id].playerTableAssignment == seatAssignment:
-			return player_id
-	return -1
+# --- Combat ---
 
-#region Dictionary-Mappings
-func ConvertPlayerSeatToClickableButtons(seatId):
-	match(seatId):
-		1:
-			return [$Player1/Button1o2, $Player1/Button1o3, $Player1/Button1o4]
-		2:
-			return [$Player2/Button2o1, $Player2/Button2o3, $Player2/Button2o4]
-		3:
-			return [$Player3/Button3o1, $Player3/Button3o2, $Player3/Button3o4]
-		4:
-			return [$Player4/Button4o1, $Player4/Button4o2, $Player4/Button4o3]
-func MutuallyExclusiveUIPerSeat(seatId):
-	match(seatId):
-		1:
-			return Player1UI
-		2:
-			return Player2UI
-		3:
-			return Player3UI
-		4:
-			return Player4UI
-func ConvertStreetToCombatants(laneName):
-	match(laneName):
-		"12": 
-			return [1, 2]
-		"14": 
-			return [1, 4]
-		"13": 
-			return [1, 3]
-		"42": 
-			return [4, 2]
-		"43" : 
-			return [4, 3]
-		"23": 
-			return [2, 3]
-func MapPlayerToHpLabel(seatId):
-	match(seatId):
-		1:
-			return $Player1/LabelP1HP
-		2:
-			return $Player2/LabelP2HP
-		3:
-			return $Player3/LabelP3HP
-		4:
-			return $Player4/LabelP4HP
-func MapPlayerToPlayernameLabel(seatId):
-	match(seatId):
-		1:
-			return $Player1/LabelP1Playername
-		2:
-			return $Player2/LabelP2Playername
-		3:
-			return $Player3/LabelP3Playername
-		4:
-			return $Player4/LabelP4Playername
-func MapPlayerToStoredUnitContLabel(seatId):
-	match(seatId):
-		1:
-			return $Player1/StoredUnitCountP1
-		2:
-			return $Player2/StoredUnitCountP2
-		3:
-			return $Player3/StoredUnitCountP3
-		4:
-			return $Player4/StoredUnitCountP4
-#endregion
+func resolve_combat():
+	var seats = GameManager.players.values().map(func(p): return p.playerTableAssignment)
+	for i in range(seats.size()):
+		for j in range(i + 1, seats.size()):
+			var seat_a = seats[i]
+			var seat_b = seats[j]
+			var btn_a = get_node_or_null("Player%d/Button%do%d" % [seat_a, seat_a, seat_b])
+			var btn_b = get_node_or_null("Player%d/Button%do%d" % [seat_b, seat_b, seat_a])
+			if not btn_a or not btn_b:
+				continue
+			var id_a = get_player_id_by_seat(seat_a)
+			var id_b = get_player_id_by_seat(seat_b)
+			if id_a == -1 or id_b == -1:
+				continue
+			var results = CombatMath.decide_victor(btn_a.text, btn_b.text)
+			GameManager.players[id_a].health += results[0]
+			GameManager.players[id_b].health += results[1]
+	send_combat_results_to_all_players.rpc(GameManager.players)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
+# --- RPCs ---
 
-#region RPCs
 @rpc("authority")
 func request_restart_game():
 	GameManager.restart_game.rpc()
 
 @rpc("any_peer", "call_local")
-func prepare_UI_per_player(Players):
-	for player in Players.keys():
-		UIDictionary[player] = MutuallyExclusiveUIPerSeat(Players[player].playerTableAssignment)
-		PlayerClickableButtons[player] = ConvertPlayerSeatToClickableButtons(Players[player].playerTableAssignment)
-		var playernameLabel = MapPlayerToPlayernameLabel(Players[player].playerTableAssignment)
-		playernameLabel.text = Players[player].name
-		var hpLabel = MapPlayerToHpLabel(Players[player].playerTableAssignment)
-		hpLabel.text = str(Players[player].health)
-		var storedUnitCount = MapPlayerToStoredUnitContLabel(Players[player].playerTableAssignment)
-		storedUnitCount.text = "3"
-		
-	for player_id in UIDictionary.keys():
-		var is_local_player = player_id == multiplayer.get_unique_id()
-		for control in UIDictionary[player_id]:
-			if control is Label:
-				control.visible = is_local_player
-			else:
-				control.visible = is_local_player
-				control.disabled = not is_local_player
+func setup_board(players_data: Dictionary):
+	var local_id = multiplayer.get_unique_id()
+	for player_id in players_data:
+		var player = players_data[player_id]
+		var seat = player.playerTableAssignment
+		get_hp_label(seat).text = str(player.health)
+		get_name_label(seat).text = player.name
+		get_stored_unit_label(seat).text = str(GameManager.startingStoredUnits)
+		var is_local = player_id == local_id
+		get_stored_unit_label(seat).visible = is_local
+		for btn in get_lane_buttons_for_seat(seat):
+			btn.visible = is_local
+			btn.disabled = not is_local
 
 @rpc("any_peer", "call_local")
+func hookup_lane_button_handlers(players_data: Dictionary):
+	var local_id = multiplayer.get_unique_id()
+	for player_id in players_data:
+		if player_id != local_id:
+			continue
+		var seat = players_data[player_id].playerTableAssignment
+		for btn in get_lane_buttons_for_seat(seat):
+			hookup_button(btn, player_id)
+
+@rpc("any_peer")
 func notify_end_turn(player_id: int):
 	if player_id in ended_turn_players:
-		return  # Avoid double-count
+		return
 	ended_turn_players.append(player_id)
 	lockin_player_unit_selections(player_id)
-
-	# Check if all players are done
-	if ended_turn_players.size() == alivePlayerCount:
-		print("Resolving combat!")
+	if ended_turn_players.size() == alive_player_count:
 		resolve_combat()
 		reset_all_player_units.rpc(GameManager.players)
-		handleAndDisableDeaths.rpc()
+		handle_deaths.rpc()
 
 @rpc("any_peer", "call_local")
-func update_all_player_health(health_data: Dictionary):
-	for player_id in health_data.keys():
-		if GameManager.players.has(player_id):
-			GameManager.players[player_id].health = health_data[player_id].health
-			match GameManager.players[player_id].playerTableAssignment:
-				1:
-					$Player1/LabelP1HP.text = str(GameManager.players[player_id].health)
-				2:
-					$Player2/LabelP2HP.text = str(GameManager.players[player_id].health)
-				3:
-					$Player3/LabelP3HP.text = str(GameManager.players[player_id].health)
-				4:
-					$Player4/LabelP4HP.text = str(GameManager.players[player_id].health)
+func on_lane_button_pressed(player_id: int, button_name: String):
+	if not GameManager.players.has(player_id):
+		return
+	var seat = GameManager.players[player_id].playerTableAssignment
+	var stored_label = get_stored_unit_label(seat)
+	var stored_count = int(stored_label.text)
+	if stored_count <= 0:
+		return
+	var btn = get_node("Player%d/%s" % [seat, button_name])
+	var new_lane_val = int(btn.text) + 1
+	update_lane_display.rpc(seat, button_name, new_lane_val, stored_count - 1)
+
 @rpc("any_peer", "call_local")
-func InitializePlayerHPLabel(player):
-		match GameManager.players[player].playerTableAssignment:
-			1:
-				$Player1/LabelP1HP.text = str(GameManager.players[player].health)
-			2:
-				$Player2/LabelP2HP.text = str(GameManager.players[player].health)
-			3:
-				$Player3/LabelP3HP.text = str(GameManager.players[player].health)
-			4:
-				$Player4/LabelP4HP.text = str(GameManager.players[player].health)
+func on_lane_button_right_clicked(player_id: int, button_name: String):
+	if not GameManager.players.has(player_id):
+		return
+	var seat = GameManager.players[player_id].playerTableAssignment
+	var btn = get_node("Player%d/%s" % [seat, button_name])
+	var current_val = int(btn.text)
+	if current_val <= 0:
+		return
+	var stored_count = int(get_stored_unit_label(seat).text)
+	update_lane_display.rpc(seat, button_name, current_val - 1, stored_count + 1)
+
 @rpc("any_peer", "call_local")
-func reset_all_player_units(Players):
-	for player in Players.keys():
-		reset_player_units.rpc(int(Players[player].id))
-@rpc("any_peer", "call_local")
+func update_lane_display(seat: int, button_name: String, lane_value: int, stored_value: int):
+	var btn = get_node_or_null("Player%d/%s" % [seat, button_name])
+	if btn:
+		btn.text = str(lane_value)
+	get_stored_unit_label(seat).text = str(stored_value)
+
+@rpc("any_peer")
 func reset_player_units(player_id: int):
 	if not GameManager.players.has(player_id):
 		return
 	var seat = GameManager.players[player_id].playerTableAssignment
-	reset_units_ui.rpc(seat)
+	sync_seat_reset.rpc(seat)
+
 @rpc("any_peer", "call_local")
-func reset_units_ui(seatAssignment):
-	var stored_label = MapPlayerToStoredUnitContLabel(seatAssignment)
-	stored_label.text = "3"
+func sync_seat_reset(seat: int):
+	reset_units_for_seat(seat)
 
-	var player_node = get_node("Player" + str(seatAssignment))
-
-	for control in player_node.get_children():
-		if control.name.contains("Button") && control is Button:
-			control.text = "0"
 @rpc("any_peer", "call_local")
-func on_lane_button_right_clicked(player_id: int, button_name: String):
-	if !GameManager.players.has(player_id):
-		return
+func reset_all_player_units(players_data: Dictionary):
+	for player_id in players_data:
+		reset_units_for_seat(players_data[player_id].playerTableAssignment)
 
-	var playerSeatId = GameManager.players[player_id].playerTableAssignment
-	var stored_label = MapPlayerToStoredUnitContLabel(playerSeatId)
-	var stored_count = int(stored_label.text)
+@rpc("any_peer", "call_local")
+func send_combat_results_to_all_players(players_data: Dictionary):
+	GameManager.players = players_data
+	for player_id in players_data:
+		get_hp_label(players_data[player_id].playerTableAssignment).text = str(players_data[player_id].health)
+	ended_turn_players = []
 
-	var suffix = button_name.substr(button_name.length() - 3)
-	var count_label = get_node("Player" + str(playerSeatId) + "/" + button_name)
+@rpc("any_peer", "call_local")
+func handle_deaths():
+	var all_defeated := true
+	for player_id in GameManager.players:
+		unlock_player_unit_selections(player_id)
+		var player = GameManager.players[player_id]
+		var seat = player.playerTableAssignment
+		if player.health <= 0:
+			if player_id not in dead_player_ids:
+				play_sound.rpc("lose")
+				dead_player_ids.append(player_id)
+				alive_player_count -= 1
+			lockin_player_unit_selections(player_id)
+			for btn in get_lane_buttons_for_seat(seat):
+				btn.disabled = true
+				btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+			get_stored_unit_label(seat).modulate = Color(0.5, 0.5, 0.5, 0.7)
+			for btn in get_buttons_targeting_seat(seat):
+				btn.disabled = true
+		else:
+			all_defeated = false
 
-	if count_label:
-		var current_val = int(count_label.text)
-		if current_val > 0:
-			count_label.text = str(current_val - 1)
-			stored_label.text = str(stored_count + 1)
-
-			update_lane_label.rpc(playerSeatId, suffix, current_val - 1, stored_count + 1)
-			update_lane_label(playerSeatId, suffix, current_val - 1, stored_count + 1)
+	if all_defeated:
+		show_game_over_screen.rpc()
+	elif alive_player_count == 1:
+		for player_id in GameManager.players:
+			if player_id not in dead_player_ids:
+				show_victory_screen.rpc(GameManager.players[player_id].name)
+				break
 
 @rpc("call_local", "any_peer")
 func play_sound(sound_name: String):
-	var sound_stream = sounds.get(sound_name)
-	if sound_stream:
-		$AudioStreamPlayer2D.stream = sound_stream
+	var stream = sounds.get(sound_name)
+	if stream:
+		$AudioStreamPlayer2D.stream = stream
 		$AudioStreamPlayer2D.play()
-	else:
-		print("Unknown sound:", sound_name)
 
 @rpc("any_peer", "call_local")
-func showVictoryScreen(playername):
-	var overlay = get_node("OverlayContainer")
+func show_victory_screen(player_name: String):
+	var overlay = $OverlayContainer
 	overlay.visible = true
+	overlay.get_node("VictoryLabel").text = "%s wins!" % player_name
 
-	var label = overlay.get_node("VictoryLabel")
-	label.text = "%s wins!" % playername
+@rpc("any_peer", "call_local")
+func show_game_over_screen():
+	var screen = get_node_or_null("EveryoneLosesScreen")
+	if screen:
+		screen.visible = true
 
 @rpc("any_peer", "call_local")
 func disable_given_player_end_turn_button():
@@ -339,104 +274,3 @@ func disable_given_player_reset_units_button():
 @rpc("any_peer", "call_local")
 func enable_given_player_reset_units_button():
 	$ResetUnitsButton.disabled = false
-
-@rpc("any_peer", "call_local")
-func show_game_over_screen():
-	var lose_screen = get_node_or_null("EveryoneLosesScreen")
-	if lose_screen:
-		lose_screen.visible = true
-	else:
-		print("ERROR: Could not find EveryoneLosesScreen")
-
-@rpc("any_peer", "call_local")
-func hookup_laneButton_handlers(Players):
-	for player_id in Players.keys():
-		if player_id == multiplayer.get_unique_id():
-			for button in PlayerClickableButtons[player_id]:
-				hookup_button(button, Players[player_id].id)
-
-@rpc("any_peer")
-func update_lane_label(seatId: int, suffix: String, new_lane_value: int, new_stored_value: int):
-	var count_label = get_node("Player" + str(seatId) + "/Button" + suffix)
-	if count_label:
-		count_label.text = str(new_lane_value)
-
-	var stored_label = MapPlayerToStoredUnitContLabel(seatId)
-	stored_label.text = str(new_stored_value)
-
-@rpc("any_peer", "call_local")
-func on_lane_button_pressed(player_id: int, button_name: String):
-	if !GameManager.players.has(player_id):
-		return
-
-	#TODO: make this work even if you dont have any units in store, take from
-	#other lanes
-	var playerSeatId = GameManager.players[player_id].playerTableAssignment
-	var stored_label = MapPlayerToStoredUnitContLabel(playerSeatId)
-	var stored_count = int(stored_label.text)
-
-	if stored_count <= 0:
-		return
-
-	var suffix = button_name.substr(button_name.length() - 3)
-	var count_label = get_node("Player"+str(playerSeatId)+"/"+button_name)
-
-	if count_label:
-		var current_val = int(count_label.text)
-		count_label.text = str(current_val + 1)
-
-	stored_label.text = str(stored_count - 1)
-
-	update_lane_label.rpc(playerSeatId, suffix, int(count_label.text), stored_count - 1)
-	update_lane_label(playerSeatId, suffix, int(count_label.text), stored_count - 1)
-
-@rpc("any_peer", "call_local")
-func send_combat_results_to_all_players(Players):
-	GameManager.players = Players;
-	update_all_player_health(Players);
-	ended_turn_players = [];
-
-@rpc("any_peer", "call_local")
-func handleAndDisableDeaths():
-	var all_defeated := true  # Assume all are defeated unless we find one alive
-	for player_id in GameManager.players.keys():
-		unlock_player_unit_selections(player_id)
-		if GameManager.players[player_id].health <= 0:
-			if player_id not in deadPlayerIds:
-				play_sound.rpc("lose")
-				deadPlayerIds.append(player_id)
-				alivePlayerCount -= 1
-			lockin_player_unit_selections(player_id)
-			if PlayerClickableButtons.has(player_id):
-				for button in PlayerClickableButtons[player_id]:
-					button.disabled = true
-			if UIDictionary.has(player_id):
-				for control in UIDictionary[player_id]:
-					control.modulate = Color(0.5, 0.5, 0.5, 0.7)  # semi-transparent gray
-			if ButtonsUsedToAttackGivenPlayerDictionary.has(GameManager.players[player_id].playerTableAssignment):
-				for control in ButtonsUsedToAttackGivenPlayerDictionary[GameManager.players[player_id].playerTableAssignment]:
-					control.disabled = true;
-		else:
-			all_defeated = false
-			
-	if all_defeated:
-		show_game_over_screen.rpc()
-		
-	if(alivePlayerCount == 1):
-		var alivePlayer
-		for player in GameManager.players:
-			if player not in deadPlayerIds:
-				alivePlayer = GameManager.players[player]
-				showVictoryScreen.rpc(alivePlayer.name)
-
-@rpc("any_peer", "call_local")
-func assign_UI_to_players(Players):
-	for player_id in UIDictionary.keys():
-		var is_local_player = player_id == multiplayer.get_unique_id()
-		for control in UIDictionary[player_id]:
-			if control is Label:
-				control.visible = is_local_player
-			else:
-				control.visible = is_local_player
-				control.disabled = not is_local_player
-#endregion

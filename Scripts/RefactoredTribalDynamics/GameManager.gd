@@ -13,16 +13,16 @@ signal player_left_lobby(leaver_id: int, name: String)
 
 enum ColorEnum { RED, BLUE, GREEN, YELLOW }
 enum GameStates {LOBBY, INGAME, ENDED}
-var color_names = ["Red", "Blue", "Green", "Yellow"]
-var color_values = [Color(1, 0, 0), Color(0, 0.4, 1), Color(0, 1, 0), Color(1, 1, 0)]
-var color_enums = [ColorEnum.RED, ColorEnum.BLUE, ColorEnum.GREEN, ColorEnum.YELLOW,]
+var color_names: Array[Variant] = ["Red", "Blue", "Green", "Yellow"]
+var color_values: Array[Variant] = [Color(1, 0, 0), Color(0, 0.4, 1), Color(0, 1, 0), Color(1, 1, 0)]
+var color_enums: Array[Variant] = [ColorEnum.RED, ColorEnum.BLUE, ColorEnum.GREEN, ColorEnum.YELLOW,]
 
 var players: Dictionary = {}
-var chat_history = []
-var available_colors = []
-var game_state = GameStates.LOBBY
-var startingHealth = 10
-var startingStoredUnits = 3
+var chat_history: Array[Variant] = []
+var available_colors: Array[Variant] = []
+var game_state: int = GameStates.LOBBY
+var startingHealth: int = 10
+var startingStoredUnits: int = 3
 
 func _ready():
 	for e in color_enums:
@@ -41,20 +41,20 @@ func add_chat_message_to_all_but_given(message: String, playerId):
 	if _is_server():
 		# Only host syncs chat to everyone
 		sync_all_chat_but_given(playerId)
-func get_chat_history():
+func get_chat_history() -> Array:
 	return chat_history.duplicate()
 #---------------------------------
 #CHAT
 
-func add_player(id: int, name: String, color: int):
+func add_player(id: int, playerName: String, color: int):
 	if players.has(id):
 		return
-	var playerTableSeatId = 1;
+	var playerTableSeatId: int = 1;
 	if(!players.is_empty()):
 		playerTableSeatId = players.size() + 1
 	players[id] = {
 		"id": id,
-		"name": name,
+		"name": playerName,
 		"color": color,#this is gonna turn into "race" or something similar
 		"health": startingHealth,
 		"stored_units": startingStoredUnits,
@@ -64,9 +64,7 @@ func add_player(id: int, name: String, color: int):
 	emit_signal(Constants.SIGNAL_PLAYER_ADDED, players[id])
 
 func remove_player(id: int):
-	var playerToRemove
 	if players.has(id):
-		playerToRemove = players[id].duplicate(true)
 		players.erase(id)
 
 func all_players_ready() -> bool:
@@ -74,13 +72,13 @@ func all_players_ready() -> bool:
 		if !player.get("ready", false):
 			return false
 	return true
-func set_game_state(state: String):
+func set_game_state(state: int):
 	game_state = state
 	emit_signal("game_state_changed")
 
-func request_register_player(id: int, name: String, color_enum: int):
-	add_player(id, name, color_enum)
-	var join_message = "%s has joined with color %s." % [name, color_names[color_enum]]
+func request_register_player(id: int, playerName: String, color_enum: int):
+	add_player(id, playerName, color_enum)
+	var join_message: String = "%s has joined with color %s." % [playerName, color_names[color_enum]]
 	add_chat_message(join_message)
 	sync_all_player_dictionaries()
 	add_player_notify_clients.rpc(players[id])
@@ -103,31 +101,31 @@ func remove_player_notify_clients(player):
 #this is marked any_peer so that CLIENTS can call this w/ rpc_id(1)
 #which means the host will be running this
 @rpc("any_peer")
-func client_request_register_player(id: int, name: String, color_enum: int):
+func client_request_register_player(id: int, playerName: String, color_enum: int) -> void:
 	if _is_not_server():
 		return
-	request_register_player(id, name, color_enum)
+	request_register_player(id, playerName, color_enum)
 
 #this is marked any_peer so that CLIENTS can call this w/ rpc_id(1)
 #which means the host will be running this
 @rpc("any_peer")
-func request_removal_from_players_dictionary(leaver_id: int):
+func request_removal_from_players_dictionary(leaver_id: int) -> void:
 	if _is_not_server():
 		return
 
 	#here, we know the server is calling this
 	if players.has(leaver_id):
-		var name = players[leaver_id].name
+		var playerName = players[leaver_id].name
 		
 		remove_player(leaver_id)
-		notify_player_left(leaver_id, name)
+		notify_player_left(leaver_id, playerName)
 		sync_all_player_dictionaries()
 		#Tell the guy leaving to clear his whole state
 		clear_client_state.rpc_id(leaver_id)
 
 @rpc("any_peer")
-func notify_player_left(leaver_id: int, name: String):
-	emit_signal(Constants.SIGNAL_PLAYER_LEFT_LOBBY, leaver_id, name)
+func notify_player_left(leaver_id: int, playerName: String):
+	emit_signal(Constants.SIGNAL_PLAYER_LEFT_LOBBY, leaver_id, playerName)
 	
 @rpc("authority")
 func reset_all():
@@ -138,7 +136,7 @@ func reset_all():
 	
 #this is marked as authority because only the server will call this
 @rpc("authority")
-func clear_client_state():
+func clear_client_state() -> void:
 	if _is_server():
 		return  # Host doesn't need this
 	players.clear()
@@ -161,14 +159,12 @@ func receive_all_chat(all_chat):
 	
 @rpc("authority")
 func sync_all_player_dictionaries():
-	var player_data = players
-	var chat_data = chat_history
-	receive_full_sync.rpc(player_data, chat_data)
+	receive_full_sync.rpc(players, chat_history)
 
 #host calls this method, hence why its tagged authority
 #for all players in the rpc that arent the host, make their game states sync
 @rpc("authority")
-func receive_full_sync(all_players: Dictionary, chat_data):
+func receive_full_sync(all_players: Dictionary, chat_data) -> void:
 	if _is_server():
 		print("server is firing receieve full sync")
 		return
@@ -177,11 +173,11 @@ func receive_full_sync(all_players: Dictionary, chat_data):
 	chat_history = chat_data
 
 @rpc("any_peer")
-func player_toggled_ready(id: int):
+func player_toggled_ready(id: int) -> void:
 	if _is_not_server():
 		return
 		
-	var toggle = false;
+	var toggle: bool = false;
 	var playerguy = players[id]
 	# Toggle logic
 	if playerguy.ready == false:
@@ -214,7 +210,7 @@ func restart_game():
 	await get_tree().process_frame  # Extra frame helps ensure it's gone
 
 	# Instantiate a new GameBoard
-	var new_game_scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	var new_game_scene: Node = preload("res://Scenes/GameBoard.tscn").instantiate()
 	new_game_scene.name = "GameBoard"
 	get_tree().root.add_child(new_game_scene)
 	var overlay := new_game_scene.get_node("OverlayContainer")
