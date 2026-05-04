@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pmk5r1vusium"
-path="res://.godot/imported/Tribal_Dynamics_BarbUnit.png-71aac9df0758ab1a2950b92453fea385.ctex"
+uid="uid://b3o4vvujygm0i"
+path="res://.godot/imported/Tribal_Dynamics_SnailGeneral.png-1a3c7b5ae18838f4d05c81695b6b9c37.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Assets/Assets/Tribal_Dynamics_BarbUnit.png"
-dest_files=["res://.godot/imported/Tribal_Dynamics_BarbUnit.png-71aac9df0758ab1a2950b92453fea385.ctex"]
+source_file="res://Assets/Assets/Assets/Tribal_Dynamics_SnailGeneral.png"
+dest_files=["res://.godot/imported/Tribal_Dynamics_SnailGeneral.png-1a3c7b5ae18838f4d05c81695b6b9c37.ctex"]
 
 [params]
 

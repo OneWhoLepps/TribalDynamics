@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pmk5r1vusium"
-path="res://.godot/imported/Tribal_Dynamics_BarbUnit.png-71aac9df0758ab1a2950b92453fea385.ctex"
+uid="uid://dvmhmxrfeh0k8"
+path="res://.godot/imported/Tribal_Dynamics_BarbGeneral.png-d7f0daf7a71e25fee4159307dd77cb21.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Assets/Assets/Tribal_Dynamics_BarbUnit.png"
-dest_files=["res://.godot/imported/Tribal_Dynamics_BarbUnit.png-71aac9df0758ab1a2950b92453fea385.ctex"]
+source_file="res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png"
+dest_files=["res://.godot/imported/Tribal_Dynamics_BarbGeneral.png-d7f0daf7a71e25fee4159307dd77cb21.ctex"]
 
 [params]
 

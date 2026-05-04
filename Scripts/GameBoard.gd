@@ -1,5 +1,24 @@
 extends Node
 
+# Seat → general texture path. Seat assignment is fixed to tribe for the board visuals;
+# actual player identity is determined at runtime via GameManager.players.
+const GENERAL_TEXTURES = {
+	1: preload("res://Assets/Assets/Assets/Tribal_Dynamics_KnightGeneral.png"),
+	2: preload("res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png"),
+	3: preload("res://Assets/Assets/Assets/Tribal_Dynamics_SnailGeneral.png"),
+	4: preload("res://Assets/Assets/Assets/Tribal_Dynamics_VampGeneral.png"),
+}
+
+# World positions matching the Player Control node offsets in GameBoard.tscn
+const GENERAL_POSITIONS = {
+	1: Vector2(295, 98),
+	2: Vector2(292, 604),
+	3: Vector2(964, 606),
+	4: Vector2(962, 98),
+}
+
+const GENERAL_SCALE = Vector2(2.0, 2.0)
+
 var state: BoardState
 var sounds: Dictionary
 
@@ -7,10 +26,20 @@ func _ready():
 	sounds = { "lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3") }
 	$ResetUnitsButton.pressed.connect(_on_reset_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
+	_place_generals()
 	if GameManager._is_server():
 		state = BoardState.create_from_players(GameManager.players)
 		sync_board_state.rpc(state.serialize())
 	hookup_lane_buttons()
+
+func _place_generals():
+	for seat in GENERAL_POSITIONS:
+		var sprite = Sprite2D.new()
+		sprite.texture  = GENERAL_TEXTURES[seat]
+		sprite.position = GENERAL_POSITIONS[seat]
+		sprite.scale    = GENERAL_SCALE
+		sprite.z_index  = 0
+		add_child(sprite)
 
 # --- Node helpers ---
 
