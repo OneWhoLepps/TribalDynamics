@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://8egcyc48ml7y"
-path="res://.godot/imported/Tribal_Dynamics_KnightGeneral.png-33c9e44f0801003075fd8598ae7602cc.ctex"
+uid="uid://cqrclkgfg1yp"
+path="res://.godot/imported/Tribal_Dynamics_Tileset-Sheetocean.png-57008697533b0eea391c1762da678749.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Assets/Assets/Tribal_Dynamics_KnightGeneral.png"
-dest_files=["res://.godot/imported/Tribal_Dynamics_KnightGeneral.png-33c9e44f0801003075fd8598ae7602cc.ctex"]
+source_file="res://Assets/Assets/Assets/Tribal_Dynamics_Tileset-Sheetocean.png"
+dest_files=["res://.godot/imported/Tribal_Dynamics_Tileset-Sheetocean.png-57008697533b0eea391c1762da678749.ctex"]
 
 [params]
 
