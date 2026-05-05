@@ -19,14 +19,46 @@ const GENERAL_POSITIONS = {
 
 const GENERAL_SCALE = Vector2(2.0, 2.0)
 
+# --- Heart display ---
+# Atlas regions inside Tribal_Dynamics_UIAssets.png (8×8 px sprites)
+const UI_ASSETS_PATH    = "res://Assets/Assets/Assets/Tribal_Dynamics_UIAssets.png"
+const HEART_FULL_REGION  = Rect2(24, 40, 8, 8)
+const HEART_EMPTY_REGION = Rect2(24, 48, 8, 8)
+const HEART_SCALE        = Vector2(3.0, 3.0)  # renders each heart as 24×24 px
+const HEART_SPACING      = 26                  # px between heart origins
+const HEARTS_COUNT       = 5                   # hearts visible per player
+const MAX_HP             = 10                  # matches GameManager.startingHealth
+
+# Top seats: hearts above name label (name label world y ≈ 63–86)
+# Bottom seats: hearts below name label (name label world y ≈ 650–673)
+const HEART_ORIGINS = {
+	1: Vector2(254,14),    # top-left  → extends right, above name
+	2: Vector2(254, 696),   # bot-left  → extends right, below name
+	3: Vector2(1000, 696),  # bot-right → extends left,  below name
+	4: Vector2(1000, 14),   # top-right → extends left,  above name
+}
+const HEART_DIR = { 1: 1, 2: 1, 3: -1, 4: -1 }
+
+# Ocean tile color (rgb 91,110,225) used to replace the UIAssets green background on hearts
+const OCEAN_COLOR = Color(0.357, 0.431, 0.882, 1.0)
+const _HEART_SHADER_CODE = "shader_type canvas_item;
+uniform vec4 ocean_color : source_color;
+void fragment() {
+	vec4 c = texture(TEXTURE, UV);
+	float d = length(c.rgb - vec3(0.294, 0.412, 0.184));
+	COLOR = d < 0.12 ? ocean_color : c;
+}"
+
 var state: BoardState
 var sounds: Dictionary
+var heart_sprites: Dictionary = {}  # seat → Array[Sprite2D]
 
 func _ready():
 	sounds = { "lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3") }
 	$ResetUnitsButton.pressed.connect(_on_reset_button_pressed)
 	$EndTurn.pressed.connect(_on_end_turn_pressed)
 	_place_generals()
+	_setup_heart_displays()
 	if GameManager._is_server():
 		state = BoardState.create_from_players(GameManager.players)
 		sync_board_state.rpc(state.serialize())
@@ -40,6 +72,43 @@ func _place_generals():
 		sprite.scale    = GENERAL_SCALE
 		sprite.z_index  = 0
 		add_child(sprite)
+
+func _setup_heart_displays():
+	var texture = load(UI_ASSETS_PATH)
+
+	var shader = Shader.new()
+	shader.code = _HEART_SHADER_CODE
+
+	for seat in HEART_ORIGINS:
+		get_hp_label(seat).hide()
+		heart_sprites[seat] = []
+		var origin = HEART_ORIGINS[seat]
+		var dir    = HEART_DIR[seat]
+		for i in range(HEARTS_COUNT):
+			var atlas        = AtlasTexture.new()
+			atlas.atlas      = texture
+			atlas.region     = HEART_FULL_REGION
+			var mat          = ShaderMaterial.new()
+			mat.shader       = shader
+			mat.set_shader_parameter("ocean_color", OCEAN_COLOR)
+			var sprite       = Sprite2D.new()
+			sprite.texture   = atlas
+			sprite.position  = origin + Vector2(dir * HEART_SPACING * i, 0)
+			sprite.scale     = HEART_SCALE
+			sprite.z_index   = 2
+			sprite.material  = mat
+			add_child(sprite)
+			heart_sprites[seat].append(sprite)
+
+func _update_hearts(seat: int, hp: int):
+	if not heart_sprites.has(seat):
+		return
+	var full_count = roundi(clampi(hp, 0, MAX_HP) * HEARTS_COUNT / float(MAX_HP))
+	var sprites = heart_sprites[seat]
+	for i in range(sprites.size()):
+		var atlas = sprites[i].texture as AtlasTexture
+		if atlas:
+			atlas.region = HEART_FULL_REGION if i < full_count else HEART_EMPTY_REGION
 
 # --- Node helpers ---
 
@@ -93,7 +162,7 @@ func render_player_ui(player_id: int, local_id: int):
 	var is_local = player_id == local_id
 	var is_dead = player_id in state.dead_player_ids
 
-	get_hp_label(seat).text = str(state.player_hp.get(player_id, 0))
+	_update_hearts(seat, state.player_hp.get(player_id, 0))
 	get_name_label(seat).text = player.name
 	get_stored_unit_label(seat).text = str(state.stored_units.get(player_id, 0))
 	get_stored_unit_label(seat).visible = is_local
