@@ -11,10 +11,10 @@ const GENERAL_TEXTURES = {
 
 # World positions matching the Player Control node offsets in GameBoard.tscn
 const GENERAL_POSITIONS = {
-	1: Vector2(295, 98),
-	2: Vector2(292, 604),
+	1: Vector2(286, 86),
+	2: Vector2(286, 600),
 	3: Vector2(964, 606),
-	4: Vector2(962, 98),
+	4: Vector2(962, 86),
 }
 
 const GENERAL_SCALE = Vector2(2.0, 2.0)
@@ -55,8 +55,6 @@ var heart_sprites: Dictionary = {}  # seat → Array[Sprite2D]
 
 func _ready():
 	sounds = { "lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3") }
-	$ResetUnitsButton.pressed.connect(_on_reset_button_pressed)
-	$EndTurn.pressed.connect(_on_end_turn_pressed)
 	_place_generals()
 	_setup_heart_displays()
 	if GameManager._is_server():
@@ -298,7 +296,7 @@ func unlock_turn_controls(player_id: int):
 
 # Unit placement — clients send intent to host, host validates and broadcasts new state.
 
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func request_place_unit(attacker_id: int, target_id: int):
 	if GameManager._is_not_server(): return
 	if not GameManager.players.has(attacker_id): return
@@ -308,7 +306,7 @@ func request_place_unit(attacker_id: int, target_id: int):
 	state.stored_units[attacker_id] -= 1
 	sync_board_state.rpc(state.serialize())
 
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func request_remove_unit(attacker_id: int, target_id: int):
 	if GameManager._is_not_server(): return
 	if not GameManager.players.has(attacker_id): return
@@ -317,7 +315,7 @@ func request_remove_unit(attacker_id: int, target_id: int):
 	state.stored_units[attacker_id] += 1
 	sync_board_state.rpc(state.serialize())
 
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func request_reset_units(player_id: int):
 	if GameManager._is_not_server(): return
 	if not GameManager.players.has(player_id): return
@@ -327,7 +325,7 @@ func request_reset_units(player_id: int):
 		state.lane_units[player_id][target_id] = 0
 	sync_board_state.rpc(state.serialize())
 
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func request_end_turn(player_id: int):
 	if GameManager._is_not_server(): return
 	if player_id in state.ended_turn_player_ids: return
@@ -360,16 +358,16 @@ func play_sound(sound_name: String):
 
 @rpc("any_peer", "call_local")
 func disable_end_turn_button():
-	$EndTurn.disabled = true
+	$EndTurnTextureButton.disabled = true
 
 @rpc("any_peer", "call_local")
 func enable_end_turn_button():
-	$EndTurn.disabled = false
+	$EndTurnTextureButton.disabled = false
 
 @rpc("any_peer", "call_local")
 func disable_reset_button():
-	$ResetUnitsButton.disabled = true
+	$ResetUnitsTextureButton.disabled = true
 
 @rpc("any_peer", "call_local")
 func enable_reset_button():
-	$ResetUnitsButton.disabled = false
+	$ResetUnitsTextureButton.disabled = false
