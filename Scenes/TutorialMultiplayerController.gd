@@ -1,12 +1,12 @@
 extends Control
 
-@export var Address = "127.0.0.1"
-@export var port = 8910
+@export var Address: String = "127.0.0.1"
+@export var port: int = 8910
 
-@onready var chatbox = $ReadonlyChatbox
-@onready var name_input = $LineEdit
-@onready var start_button = $StartGame
-@onready var ip_input = $IPTextField
+@onready var chatbox: ItemList = $ReadonlyChatbox
+@onready var name_input: LineEdit = $LineEdit
+@onready var start_button: Button = $StartGame
+@onready var ip_input: LineEdit = $IPTextField
 
 
 var peer
@@ -18,7 +18,7 @@ func _ready():
 	multiplayer.connection_failed.connect(connection_failed)
 	start_button.disabled = true
 
-func _on_host_game_button_down():
+func _on_host_game_button_down() -> void:
 	peer = ENetMultiplayerPeer.new()
 	var error = peer.create_server(port, 4)
 	if error != OK:
@@ -29,24 +29,24 @@ func _on_host_game_button_down():
 	multiplayer.set_multiplayer_peer(peer)
 	start_button.disabled = false
 
-	var my_id = multiplayer.get_unique_id()
+	var my_id: int = multiplayer.get_unique_id()
 	HostGame(name_input.text, my_id, GameManager.RED)
 
-func HostGame(name, id, color):
+func HostGame(playerName, id, color):
 	if !GameManager.Players.has(id):
 		GameManager.Players[id] = {
-			"name": name,
-			 "id": id,
-			 "color": color,
-			 "health": 10,
+			"name": playerName,
+			"id": id,
+			"color": color,
+			"health": 10,
 			"storedUnitCount": 3
 			}
 
-		var message = "%s has joined the lobby with color %s." % [name, color]
+		var message: String = "%s has joined the lobby with color %s." % [name, color]
 		GameManager.Chatbox.append(message)
 		refresh_chatbox()
 
-func _on_join_game_button_down():
+func _on_join_game_button_down() -> void:
 	peer = ENetMultiplayerPeer.new()
 	var error = peer.create_client(ip_input.text, port)
 	
@@ -68,7 +68,7 @@ func _on_start_game_button_down():
 
 @rpc("any_peer", "call_local")
 func start_game():
-	var scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	var scene: Node = preload("res://Scenes/GameBoard.tscn").instantiate()
 	scene.name = "GameBoard"
 	get_tree().root.add_child(scene)
 
@@ -84,12 +84,11 @@ func peer_disconnected(id):
 
 func connected_to_server():
 	print("Connected to server!")
-	var my_id = multiplayer.get_unique_id()
 	#call request join on host client
 	RequestJoin.rpc_id(1, name_input.text, multiplayer.get_unique_id())
 
 @rpc("any_peer")
-func RequestJoin(name: String, id: int):
+func RequestJoin(playerName: String, id: int) -> void:
 	if !multiplayer.is_server():
 		return
 		
@@ -103,9 +102,9 @@ func RequestJoin(name: String, id: int):
 
 	#server adds join message to its own chatbox 
 	#and adds player to its playerlist
-	var join_msg = "%s has joined the lobby with color %s." % [name, assigned_color]
+	var join_msg: String = "%s has joined the lobby with color %s." % [playerName, assigned_color]
 	GameManager.Chatbox.append(join_msg)
-	AddPlayerToGameManager(id, name, assigned_color)
+	AddPlayerToGameManager(id, playerName, assigned_color)
 	
 	#clients call requestjoin, and server executes
 	
@@ -131,17 +130,17 @@ func SendAvailableColors(colors: Array):
 	GameManager.OpenColors = colors.duplicate()
 
 @rpc("any_peer")
-func SendPlayerInformation(name: String, id: int, color: int):
-	AddPlayerToGameManager(id, name, color)
+func SendPlayerInformation(playerName: String, id: int, color: int):
+	AddPlayerToGameManager(id, playerName, color)
 
 func UpdateChatHistory(history: Array):
 	GameManager.Chatbox = history.duplicate()
 	refresh_chatbox()
 
-func AddPlayerToGameManager(id: int, name: String, color: int):
+func AddPlayerToGameManager(id: int, playerName: String, color: int):
 	GameManager.Players[id] = {
 		"id": id,
-		"name": name,
+		"name": playerName,
 		"color": color,
 		"health": 10,
 		"storedUnitCount": 3
@@ -191,7 +190,7 @@ func restart_game():
 	await get_tree().process_frame  # Extra frame helps ensure it's gone
 
 	# Instantiate a new GameBoard
-	var new_game_scene = preload("res://Scenes/GameBoard.tscn").instantiate()
+	var new_game_scene: Node = preload("res://Scenes/GameBoard.tscn").instantiate()
 	new_game_scene.name = "GameBoard"
 	get_tree().root.add_child(new_game_scene)
 	var overlay := new_game_scene.get_node("OverlayContainer")

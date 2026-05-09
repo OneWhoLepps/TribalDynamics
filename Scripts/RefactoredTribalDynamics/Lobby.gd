@@ -90,9 +90,9 @@ func _on_player_leave_pressed(id: int):
 		return_to_main()
 
 
-func _on_player_left_lobby(leaver_id: int, name: String):
+func _on_player_left_lobby(leaver_id: int, player_name: String):
 	notify_player_left.rpc(leaver_id)
-	GameManager.add_chat_message_to_all_but_given(name + " has left the game.", leaver_id)
+	GameManager.add_chat_message_to_all_but_given(player_name + " has left the game.", leaver_id)
 
 #remove the player thats leaving from list of players in this lobby
 @rpc("any_peer", "call_local")
