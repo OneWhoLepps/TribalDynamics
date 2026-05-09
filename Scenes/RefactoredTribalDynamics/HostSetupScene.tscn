@@ -1,12 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://cauqphr6p2o0b"]
+[gd_scene load_steps=3 format=3 uid="uid://cauqphr6p2o0b"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/HostSetupScene.gd" id="1_1ckpu"]
+[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png" id="2_6pup1"]
 
 [node name="HostSetupScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -21.0
+offset_right = -21.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_1ckpu")
@@ -26,7 +29,7 @@ offset_right = 779.0
 offset_bottom = 535.0
 text = "Begin Game Lobby"
 
-[node name="ColorPicker" type="OptionButton" parent="."]
+[node name="TribePicker" type="OptionButton" parent="."]
 layout_mode = 0
 offset_left = 527.0
 offset_top = 358.0
@@ -47,14 +50,7 @@ offset_left = 513.0
 offset_top = 326.0
 offset_right = 696.0
 offset_bottom = 349.0
-text = "Pick your color:"
-
-[node name="ColorPreview" type="ColorRect" parent="."]
-layout_mode = 0
-offset_left = 461.0
-offset_top = 358.0
-offset_right = 501.0
-offset_bottom = 398.0
+text = "Pick your tribe:"
 
 [node name="BackToMain" type="Button" parent="."]
 layout_mode = 0
@@ -64,5 +60,10 @@ offset_right = 342.0
 offset_bottom = 535.0
 text = "Back"
 
+[node name="TribePreview" type="Sprite2D" parent="."]
+position = Vector2(498, 375)
+texture = ExtResource("2_6pup1")
+
 [connection signal="pressed" from="BeginGameLobby" to="." method="_on_ReadyButton_pressed"]
+[connection signal="item_selected" from="TribePicker" to="." method="_on_tribe_picker_item_selected"]
 [connection signal="pressed" from="BackToMain" to="." method="_on_back_to_main_pressed"]

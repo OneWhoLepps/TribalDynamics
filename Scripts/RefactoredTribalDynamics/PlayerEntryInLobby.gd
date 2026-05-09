@@ -8,7 +8,6 @@ func setup(entry_data: Dictionary):
 	player_id = entry_data["id"]
 	set_ready_visual(entry_data["ready"], player_id)
 	$HBoxContainer/PlayerName.text = entry_data["name"]
-	$HBoxContainer/ColorPreview.color = GameManager.color_values[entry_data["color"]]
 	$HBoxContainer/ReadyToggle.button_pressed = entry_data["ready"]
 
 	# Ensure the node is fully inside the tree before checking multiplayer ID

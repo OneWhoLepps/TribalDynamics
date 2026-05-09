@@ -1,14 +1,5 @@
 extends Node
 
-# Seat → general texture path. Seat assignment is fixed to tribe for the board visuals;
-# actual player identity is determined at runtime via GameManager.players.
-const GENERAL_TEXTURES = {
-	1: preload("res://Assets/Assets/Assets/Tribal_Dynamics_KnightGeneral.png"),
-	2: preload("res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png"),
-	3: preload("res://Assets/Assets/Assets/Tribal_Dynamics_SnailGeneral.png"),
-	4: preload("res://Assets/Assets/Assets/Tribal_Dynamics_VampGeneral.png"),
-}
-
 # World positions matching the Player Control node offsets in GameBoard.tscn
 const GENERAL_POSITIONS = {
 	1: Vector2(286, 86),
@@ -64,8 +55,17 @@ func _ready():
 
 func _place_generals():
 	for seat in GENERAL_POSITIONS:
+		var player = null
+		for p in GameManager.players.values():
+			if p.playerTableAssignment == seat:
+				player = p
+				break
+		if player == null:
+			continue
+
+		var tribe = player.tribe
 		var sprite = Sprite2D.new()
-		sprite.texture  = GENERAL_TEXTURES[seat]
+		sprite.texture  = GameManager.TRIBE_GENERAL_TEXTURES[tribe]
 		sprite.position = GENERAL_POSITIONS[seat]
 		sprite.scale    = GENERAL_SCALE
 		sprite.z_index  = 0

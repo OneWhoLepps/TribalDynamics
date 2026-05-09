@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://x1k43m5a5iao"]
+[gd_scene load_steps=3 format=3 uid="uid://x1k43m5a5iao"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/JoinLobbyScene.gd" id="1_ug6yt"]
+[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png" id="2_pt15x"]
 
 [node name="JoinLobbyScene" type="Control"]
 layout_mode = 3
@@ -26,12 +27,12 @@ text = "Name: "
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ColorPicker" type="OptionButton" parent="HBoxContainer"]
+[node name="TribePicker" type="OptionButton" parent="HBoxContainer"]
 layout_mode = 2
 
-[node name="ColorPreview" type="ColorRect" parent="HBoxContainer"]
+[node name="TribePreview" type="TextureRect" parent="HBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
+texture = ExtResource("2_pt15x")
 
 [node name="Label" type="Label" parent="HBoxContainer"]
 layout_mode = 2
@@ -54,5 +55,6 @@ offset_right = 657.0
 offset_bottom = 527.0
 text = "Back"
 
+[connection signal="item_selected" from="HBoxContainer/TribePicker" to="." method="_on_tribe_picker_item_selected"]
 [connection signal="pressed" from="HBoxContainer/JoinButton" to="." method="_on_JoinButton_pressed"]
 [connection signal="pressed" from="ReturnToMain" to="." method="_on_return_to_main_pressed"]
