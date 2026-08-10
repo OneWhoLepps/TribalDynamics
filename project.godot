@@ -15,7 +15,7 @@ run/main_scene="res://Scenes/RefactoredTribalDynamics/MainScene.tscn"
 config/features=PackedStringArray("4.2", "GL Compatibility")
 boot_splash/show_image=false
 boot_splash/fullsize=false
-config/icon="res://Assets/icon.svg"
+config/icon="res://Assets/Etc/icon.svg"
 
 [autoload]
 

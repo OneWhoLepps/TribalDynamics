@@ -1,10 +1,10 @@
 [gd_scene load_steps=8 format=3 uid="uid://kel17x62c5pw"]
 
 [ext_resource type="Script" path="res://Scripts/GameBoard.gd" id="1_ywyfp"]
+[ext_resource type="Texture2D" uid="uid://c3r3f1m43h3f8" path="res://Assets/Etc/everyoneLoses.jpg" id="2_awwxc"]
 [ext_resource type="PackedScene" uid="uid://boardmapdata" path="res://Scenes/BoardMapData.tscn" id="3_cepit"]
-[ext_resource type="Texture2D" uid="uid://c3r3f1m43h3f8" path="res://Assets/everyoneLoses.jpg" id="3_l3wer"]
-[ext_resource type="Texture2D" uid="uid://dj142usa50vbx" path="res://Assets/Assets/AtlasTextures/ReadyButton.tres" id="4_dspw0"]
-[ext_resource type="Texture2D" uid="uid://b1bbw68ntih8" path="res://Assets/Assets/AtlasTextures/ResetUnitsButton.tres" id="5_uy8ax"]
+[ext_resource type="Texture2D" uid="uid://dj142usa50vbx" path="res://Assets/AtlasTextures/ReadyButton.tres" id="4_ighvb"]
+[ext_resource type="Texture2D" uid="uid://b1bbw68ntih8" path="res://Assets/AtlasTextures/ResetUnitsButton.tres" id="5_mre1q"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d5qfj"]
 font_color = Color(0, 0, 0, 1)
@@ -281,7 +281,7 @@ visible = false
 z_index = 2
 position = Vector2(640, 362.5)
 scale = Vector2(2.13333, 1.94892)
-texture = ExtResource("3_l3wer")
+texture = ExtResource("2_awwxc")
 
 [node name="OverlayContainer" type="Control" parent="."]
 visible = false
@@ -329,7 +329,7 @@ offset_left = 640.0
 offset_top = 657.0
 offset_right = 709.0
 offset_bottom = 688.0
-texture_normal = ExtResource("4_dspw0")
+texture_normal = ExtResource("4_ighvb")
 stretch_mode = 0
 
 [node name="ResetUnitsTextureButton" type="TextureButton" parent="."]
@@ -337,7 +337,7 @@ offset_left = 523.0
 offset_top = 657.0
 offset_right = 622.0
 offset_bottom = 688.0
-texture_normal = ExtResource("5_uy8ax")
+texture_normal = ExtResource("5_mre1q")
 stretch_mode = 0
 
 [connection signal="pressed" from="OverlayContainer/RestartGameButton" to="." method="_on_restart_game_button_pressed"]

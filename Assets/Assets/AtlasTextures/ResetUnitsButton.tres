@@ -1,7 +1,0 @@
-[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://b1bbw68ntih8"]
-
-[ext_resource type="Texture2D" uid="uid://bhff00f1w0i28" path="res://Assets/Assets/Assets/Tribal_Dynamics_UIAssets.png" id="1_1xs32"]
-
-[resource]
-atlas = ExtResource("1_1xs32")
-region = Rect2(49.2692, 96.972, 46.4849, 13.9184)

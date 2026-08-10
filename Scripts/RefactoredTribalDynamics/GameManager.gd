@@ -15,10 +15,10 @@ enum TribeEnum { BARBARIAN, KNIGHT, VAMPIRE, SNAIL }
 var tribe_enum: Array[Variant] = [TribeEnum.BARBARIAN, TribeEnum.KNIGHT, TribeEnum.VAMPIRE, TribeEnum.SNAIL]
 var tribe_names: Array[String] = ["Barbarian", "Knight", "Vampire", "Snail"]
 const TRIBE_GENERAL_TEXTURES = {
-	GameManager.TribeEnum.BARBARIAN: preload("res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png"),
-	GameManager.TribeEnum.KNIGHT:    preload("res://Assets/Assets/Assets/Tribal_Dynamics_KnightGeneral.png"),
-	GameManager.TribeEnum.VAMPIRE:   preload("res://Assets/Assets/Assets/Tribal_Dynamics_VampGeneral.png"),
-	GameManager.TribeEnum.SNAIL:     preload("res://Assets/Assets/Assets/Tribal_Dynamics_SnailGeneral.png"),
+	GameManager.TribeEnum.BARBARIAN: preload("res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral.png"),
+	GameManager.TribeEnum.KNIGHT:    preload("res://Assets/Knight/Tribal_Dynamics_KnightGeneral.png"),
+	GameManager.TribeEnum.VAMPIRE:   preload("res://Assets/Vampire/Tribal_Dynamics_VampGeneral.png"),
+	GameManager.TribeEnum.SNAIL:     preload("res://Assets/Snail/Tribal_Dynamics_SnailGeneral.png"),
 }
 enum GameStates { LOBBY, INGAME, ENDED }
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://x1k43m5a5iao"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/JoinLobbyScene.gd" id="1_ug6yt"]
-[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png" id="2_pt15x"]
+[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral.png" id="2_pt15x"]
 
 [node name="JoinLobbyScene" type="Control"]
 layout_mode = 3

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://boardmapdata"]
 
 [ext_resource type="Script" path="res://Scripts/BoardMapData.gd" id="1_mapdata"]
-[ext_resource type="TileSet" uid="uid://bo1c6xmtqd31s" path="res://Assets/BoardTileSet.tres" id="1_qnkuu"]
+[ext_resource type="TileSet" uid="uid://bo1c6xmtqd31s" path="res://Assets/AtlasTextures/BoardTileSet.tres" id="1_qnkuu"]
 
 [node name="BoardMapData" type="TileMap"]
 tile_set = ExtResource("1_qnkuu")

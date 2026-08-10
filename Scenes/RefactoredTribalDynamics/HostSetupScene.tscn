@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cauqphr6p2o0b"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/HostSetupScene.gd" id="1_1ckpu"]
-[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Assets/Assets/Tribal_Dynamics_BarbGeneral.png" id="2_6pup1"]
+[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral.png" id="2_6pup1"]
 
 [node name="HostSetupScene" type="Control"]
 layout_mode = 3
