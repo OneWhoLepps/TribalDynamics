@@ -12,7 +12,7 @@ const GENERAL_SCALE = Vector2(2.0, 2.0)
 
 # --- Heart display ---
 # Atlas regions inside Tribal_Dynamics_UIAssets.png (8×8 px sprites)
-const UI_ASSETS_PATH    = "res://Assets/Assets/Assets/Tribal_Dynamics_UIAssets.png"
+const UI_ASSETS_PATH    = "res://Assets/Fonts/Tribal_Dynamics_UIAssets.png"
 const HEART_FULL_REGION  = Rect2(24, 40, 8, 8)
 const HEART_EMPTY_REGION = Rect2(24, 48, 8, 8)
 const HEART_SCALE        = Vector2(3.0, 3.0)  # renders each heart as 24×24 px

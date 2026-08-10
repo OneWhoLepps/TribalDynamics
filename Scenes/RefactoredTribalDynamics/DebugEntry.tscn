@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://ciubg5hagqc7f"]
+[gd_scene load_steps=2 format=3 uid="uid://isw0nu6hbfto"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/DebugEntry.gd" id="1_debug"]
 

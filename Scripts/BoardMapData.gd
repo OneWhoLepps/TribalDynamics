@@ -4,7 +4,7 @@ extends TileMap
 # --- Configuration ---
 
 const TILESET_PATH    = "res://Assets/BoardTileSet.tres"
-const TILESET_TEXTURE = "res://Assets/Assets/Assets/Tribal_Dynamics_Tileset-Sheet.png"
+const TILESET_TEXTURE = "res://Assets/Background/Tribal_Dynamics_Tileset-Sheet.png"
 const TILE_SIZE       = Vector2i(16, 16)
 
 # Toggle guide overlay from the Inspector while editing

@@ -13,7 +13,8 @@ func setup(entry_data: Dictionary):
 	# Ensure the node is fully inside the tree before checking multiplayer ID
 	if not is_inside_tree():
 		await ready
-
+		
+	#This turns off other players being able to interact with your buttons.
 	var is_local = player_id == get_tree().get_multiplayer().get_unique_id()
 	$HBoxContainer/ReadyToggle.disabled = not is_local
 	if(not is_local):
