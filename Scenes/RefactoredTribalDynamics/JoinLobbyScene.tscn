@@ -14,10 +14,11 @@ script = ExtResource("1_ug6yt")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
-offset_left = 92.0
-offset_top = 329.0
-offset_right = 1112.0
-offset_bottom = 369.0
+offset_left = 19.0
+offset_top = 335.0
+offset_right = 1011.0
+offset_bottom = 375.0
+scale = Vector2(1.25, 1.25)
 
 [node name="PlayerNameLabel" type="Label" parent="HBoxContainer"]
 layout_mode = 2
@@ -44,7 +45,7 @@ position = Vector2(2, 0)
 
 [node name="Label" type="Label" parent="HBoxContainer"]
 layout_mode = 2
-text = "Host IP to connect to: "
+text = "Host IP"
 
 [node name="IPInput" type="LineEdit" parent="HBoxContainer"]
 layout_mode = 2
@@ -53,13 +54,13 @@ text = "127.0.0.1"
 
 [node name="JoinButton" type="Button" parent="HBoxContainer"]
 layout_mode = 2
-text = "Join Lobby"
+text = "Join "
 
 [node name="ReturnToMain" type="Button" parent="."]
 layout_mode = 0
-offset_left = 510.0
+offset_left = 531.0
 offset_top = 479.0
-offset_right = 657.0
+offset_right = 678.0
 offset_bottom = 527.0
 text = "Back"
 
