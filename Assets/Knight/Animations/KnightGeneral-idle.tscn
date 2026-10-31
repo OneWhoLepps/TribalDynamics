@@ -1,0 +1,40 @@
+[gd_scene load_steps=7 format=3 uid="uid://c5hptt5ef61w0"]
+
+[ext_resource type="Texture2D" uid="uid://cv00342txwfc5" path="res://Assets/Knight/Tribal_Dynamics_KnightGeneral_AnimationsIdle.png" id="1_pffv1"]
+[ext_resource type="Script" path="res://Assets/SharedScripts/DefaultAnimationPlayer.gd" id="2_ncmoj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mop55"]
+atlas = ExtResource("1_pffv1")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_06qgc"]
+atlas = ExtResource("1_pffv1")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uj2ma"]
+atlas = ExtResource("1_pffv1")
+region = Rect2(0, 48, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_54hsc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mop55")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_06qgc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uj2ma")
+}],
+"loop": true,
+"name": &"default",
+"speed": 3.0
+}]
+
+[node name="KnightGeneral-idle" type="Node2D"]
+
+[node name="KnightGeneral" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_54hsc")
+frame_progress = 0.736435
+script = ExtResource("2_ncmoj")

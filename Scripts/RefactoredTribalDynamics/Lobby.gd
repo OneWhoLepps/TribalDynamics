@@ -27,15 +27,20 @@ func _introduce_player_list():
 		entry.setup(player)
 		entry.connect("leave_pressed", Callable(self, "_on_player_leave_pressed"))
 		entry.connect("ready_pressed", Callable(self, "_on_player_ready_pressed"))
+		entry.connect("tribe_changed", Callable(self, "_on_tribe_changed"))
 		player_list.add_child(entry)
 	turn_off_start_game.rpc_id(Constants.HOST_ID)
 
 func add_player_to_player_list(player):
+	for child in player_list.get_children():
+		if child.has_method("get_player_id") and child.get_player_id() == player.id:
+			return
 	var player_entry_scene = preload("res://Scenes/RefactoredTribalDynamics/PlayerEntryInLobby.tscn")
 	var entry = player_entry_scene.instantiate()
 	entry.setup(player)
 	entry.connect("leave_pressed", Callable(self, "_on_player_leave_pressed"))
 	entry.connect("ready_pressed", Callable(self, "_on_player_ready_pressed"))
+	entry.connect("tribe_changed", Callable(self, "_on_tribe_changed"))
 	player_list.add_child(entry)
 	check_for_all_players_ready.rpc_id(Constants.HOST_ID)
 	
@@ -64,6 +69,12 @@ func _on_player_ready_pressed(id: int):
 		GameManager.player_toggled_ready(id)
 	#send rpc to host to turn on begin game button if all players ready
 	check_for_all_players_ready.rpc_id(Constants.HOST_ID)
+
+func _on_tribe_changed(_id: int, tribe: int):
+	if GameManager._is_not_server():
+		GameManager.request_tribe_change.rpc_id(Constants.HOST_ID, tribe)
+	else:
+		GameManager.request_tribe_change(tribe)
 
 func _on_player_leave_pressed(id: int):
 	if (GameManager._is_not_server()):

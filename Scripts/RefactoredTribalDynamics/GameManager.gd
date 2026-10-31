@@ -10,23 +10,44 @@ signal player_modified
 signal game_state_changed
 signal game_manager_ready_toggled(toggled, id)
 signal player_left_lobby(leaver_id: int, name: String)
+signal player_tribe_changed(id, tribe)
 
-enum ColorEnum { RED, BLUE, GREEN, YELLOW }
-enum GameStates {LOBBY, INGAME, ENDED}
-var color_names: Array[Variant] = ["Red", "Blue", "Green", "Yellow"]
-var color_values: Array[Variant] = [Color(1, 0, 0), Color(0, 0.4, 1), Color(0, 1, 0), Color(1, 1, 0)]
-var color_enums: Array[Variant] = [ColorEnum.RED, ColorEnum.BLUE, ColorEnum.GREEN, ColorEnum.YELLOW,]
+enum TribeEnum { BARBARIAN, KNIGHT, VAMPIRE, SNAIL }
+var tribe_enum: Array[Variant] = [TribeEnum.BARBARIAN, TribeEnum.KNIGHT, TribeEnum.VAMPIRE, TribeEnum.SNAIL]
+var tribe_names: Array[String] = ["Barbarian", "Knight", "Vampire", "Snail"]
+const TRIBE_GENERAL_TEXTURES = {
+	GameManager.TribeEnum.BARBARIAN: preload("res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral.png"),
+	GameManager.TribeEnum.KNIGHT:    preload("res://Assets/Knight/Tribal_Dynamics_KnightGeneral.png"),
+	GameManager.TribeEnum.VAMPIRE:   preload("res://Assets/Vampire/Tribal_Dynamics_VampGeneral.png"),
+	GameManager.TribeEnum.SNAIL:     preload("res://Assets/Snail/Tribal_Dynamics_SnailGeneral.png"),
+}
+
+const TRIBE_GENERAL_IDLE_SCENES = {
+	TribeEnum.BARBARIAN: preload("res://Assets/Barbarian/Animations/BarbGeneral-idle.tscn"),
+	TribeEnum.KNIGHT:    preload("res://Assets/Knight/Animations/KnightGeneral-idle.tscn"),
+	TribeEnum.VAMPIRE:   preload("res://Assets/Vampire/Animations/VampGeneral-idle.tscn"),
+	TribeEnum.SNAIL:     preload("res://Assets/Snail/Animations/SnailGeneral-idle.tscn"),
+}
+
+const TRIBE_UNIT_SCENES = {
+	TribeEnum.BARBARIAN: preload("res://Assets/Barbarian/Animations/BarbUnit.tscn"),
+	TribeEnum.KNIGHT:    preload("res://Assets/Knight/Animations/KnightUnit.tscn"),
+	TribeEnum.VAMPIRE:   preload("res://Assets/Vampire/Animations/VampUnit.tscn"),
+	TribeEnum.SNAIL:     preload("res://Assets/Snail/Animations/SnailUnit.tscn"),
+}
+
+enum GameStates { LOBBY, INGAME, ENDED }
 
 var players: Dictionary = {}
 var chat_history: Array[Variant] = []
-var available_colors: Array[Variant] = []
+var available_tribes: Array[Variant] = []
 var game_state: int = GameStates.LOBBY
 var startingHealth: int = 10
 var startingStoredUnits: int = 3
 
 func _ready():
-	for e in color_enums:
-		available_colors.append(int(e))
+	for tribe in TribeEnum:
+		available_tribes.append(tribe)
 #CHAT
 #---------------------------------
 func add_chat_message(message: String):
@@ -46,7 +67,7 @@ func get_chat_history() -> Array:
 #---------------------------------
 #CHAT
 
-func add_player(id: int, playerName: String, color: int):
+func add_player(id: int, playerName: String, tribe: int):
 	if players.has(id):
 		return
 	var playerTableSeatId: int = 1;
@@ -55,7 +76,7 @@ func add_player(id: int, playerName: String, color: int):
 	players[id] = {
 		"id": id,
 		"name": playerName,
-		"color": color,#this is gonna turn into "race" or something similar
+		"tribe": tribe,#this is gonna turn into "race" or something similar
 		"health": startingHealth,
 		"stored_units": startingStoredUnits,
 		"ready": false,
@@ -76,9 +97,9 @@ func set_game_state(state: int):
 	game_state = state
 	emit_signal("game_state_changed")
 
-func request_register_player(id: int, playerName: String, color_enum: int):
-	add_player(id, playerName, color_enum)
-	var join_message: String = "%s has joined with color %s." % [playerName, color_names[color_enum]]
+func request_register_player(id: int, playerName: String, tribe: int):
+	add_player(id, playerName, tribe)
+	var join_message: String = "%s has joined." % [playerName]
 	add_chat_message(join_message)
 	sync_all_player_dictionaries()
 	add_player_notify_clients.rpc(players[id])
@@ -101,10 +122,13 @@ func remove_player_notify_clients(player):
 #this is marked any_peer so that CLIENTS can call this w/ rpc_id(1)
 #which means the host will be running this
 @rpc("any_peer")
-func client_request_register_player(id: int, playerName: String, color_enum: int) -> void:
+func client_request_register_player(id: int, playerName: String, tribe: int) -> void:
 	if _is_not_server():
 		return
-	request_register_player(id, playerName, color_enum)
+	if tribe < 0 or tribe >= tribe_names.size():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	request_register_player(sender if sender != 0 else id, playerName, tribe)
 
 #this is marked any_peer so that CLIENTS can call this w/ rpc_id(1)
 #which means the host will be running this
@@ -216,3 +240,32 @@ func restart_game():
 	var overlay := new_game_scene.get_node("OverlayContainer")
 	if overlay:
 		overlay.visible = false
+
+@rpc("any_peer", "reliable")
+func request_tribe_change(tribe: int) -> void:
+	if _is_not_server():
+		return
+
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = Constants.HOST_ID   # host called it locally
+
+	var valid := players.has(sender) \
+		and tribe >= 0 and tribe < tribe_names.size() \
+		and game_state == GameStates.LOBBY
+	if not valid:
+		# Snap the requester back to what the host believes their tribe is
+		if players.has(sender):
+			update_tribe_ui.rpc_id(sender, sender, players[sender].tribe)
+		return
+
+	players[sender].tribe = tribe
+	sync_all_player_dictionaries()       # keeps everyone's dict correct
+	update_tribe_ui.rpc(sender, tribe)   # tells every lobby to update that entry
+
+# Host -> everyone, including the host itself via call_local.
+@rpc("authority", "call_local", "reliable")
+func update_tribe_ui(id: int, tribe: int) -> void:
+	if players.has(id):
+		players[id].tribe = tribe
+	emit_signal("player_tribe_changed", id, tribe)

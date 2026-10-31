@@ -20,16 +20,16 @@ offset_bottom = 409.0
 
 [node name="Chatbox" type="ItemList" parent="."]
 layout_mode = 0
-offset_left = 529.0
+offset_left = 621.0
 offset_top = 216.0
-offset_right = 984.0
+offset_right = 1076.0
 offset_bottom = 293.0
 
 [node name="StartGameButton" type="Button" parent="."]
 layout_mode = 0
-offset_left = 630.0
+offset_left = 719.0
 offset_top = 152.0
-offset_right = 731.0
+offset_right = 820.0
 offset_bottom = 186.0
 disabled = true
 text = "Begin Game

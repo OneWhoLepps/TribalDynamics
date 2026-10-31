@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://djrjrvtl8sdmh"]
+
+[ext_resource type="Texture2D" uid="uid://dswe50u7n0h1y" path="res://Assets/Knight/Tribal_Dynamics_KnightUnit.png" id="1_siaeo"]
+[ext_resource type="Script" path="res://Assets/SharedScripts/DefaultAnimationPlayer.gd" id="2_oh8gb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shci2"]
+atlas = ExtResource("1_siaeo")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tljv7"]
+atlas = ExtResource("1_siaeo")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_kovga"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shci2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tljv7")
+}],
+"loop": true,
+"name": &"default",
+"speed": 4.0
+}]
+
+[node name="KnightUnit" type="Node2D"]
+
+[node name="Knight" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_kovga")
+frame_progress = 0.444868
+script = ExtResource("2_oh8gb")

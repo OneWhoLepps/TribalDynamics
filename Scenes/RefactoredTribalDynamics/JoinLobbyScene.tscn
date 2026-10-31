@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://x1k43m5a5iao"]
+[gd_scene load_steps=3 format=3 uid="uid://x1k43m5a5iao"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/JoinLobbyScene.gd" id="1_ug6yt"]
+[ext_resource type="PackedScene" uid="uid://btvehvw0fkxi0" path="res://Assets/GeneralIdleAnim-Picker/GeneralIdleAnim-Picker.tscn" id="3_m5b6m"]
 
 [node name="JoinLobbyScene" type="Control"]
 layout_mode = 3
@@ -13,10 +14,11 @@ script = ExtResource("1_ug6yt")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
-offset_left = 92.0
-offset_top = 329.0
-offset_right = 1112.0
-offset_bottom = 369.0
+offset_left = 19.0
+offset_top = 335.0
+offset_right = 1011.0
+offset_bottom = 375.0
+scale = Vector2(1.25, 1.25)
 
 [node name="PlayerNameLabel" type="Label" parent="HBoxContainer"]
 layout_mode = 2
@@ -26,16 +28,24 @@ text = "Name: "
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ColorPicker" type="OptionButton" parent="HBoxContainer"]
+[node name="TribePicker" type="OptionButton" parent="HBoxContainer"]
 layout_mode = 2
 
-[node name="ColorPreview" type="ColorRect" parent="HBoxContainer"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(48, 40)
 layout_mode = 2
-size_flags_horizontal = 3
+
+[node name="SubViewport" type="SubViewport" parent="HBoxContainer/SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(48, 40)
+render_target_update_mode = 4
+
+[node name="GeneralIdleAnim-picker" parent="HBoxContainer/SubViewportContainer/SubViewport" instance=ExtResource("3_m5b6m")]
+position = Vector2(2, 0)
 
 [node name="Label" type="Label" parent="HBoxContainer"]
 layout_mode = 2
-text = "Host IP to connect to: "
+text = "Host IP"
 
 [node name="IPInput" type="LineEdit" parent="HBoxContainer"]
 layout_mode = 2
@@ -44,15 +54,16 @@ text = "127.0.0.1"
 
 [node name="JoinButton" type="Button" parent="HBoxContainer"]
 layout_mode = 2
-text = "Join Lobby"
+text = "Join "
 
 [node name="ReturnToMain" type="Button" parent="."]
 layout_mode = 0
-offset_left = 510.0
+offset_left = 531.0
 offset_top = 479.0
-offset_right = 657.0
+offset_right = 678.0
 offset_bottom = 527.0
 text = "Back"
 
+[connection signal="item_selected" from="HBoxContainer/TribePicker" to="." method="_on_tribe_picker_item_selected"]
 [connection signal="pressed" from="HBoxContainer/JoinButton" to="." method="_on_JoinButton_pressed"]
 [connection signal="pressed" from="ReturnToMain" to="." method="_on_return_to_main_pressed"]
