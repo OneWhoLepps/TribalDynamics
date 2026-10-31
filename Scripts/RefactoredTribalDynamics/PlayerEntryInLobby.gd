@@ -29,6 +29,8 @@ func setup(entry_data: Dictionary):
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	GameManager.connect("game_manager_ready_toggled", Callable(self, "set_ready_visual"))
+	for name in GameManager.tribe_names:
+		$HBoxContainer/TribePicker.add_item(name)
 	pass # Replace with function body.
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -52,4 +54,5 @@ func _on_ready_toggle_pressed():
 func get_player_id():
 	return player_id
 	
-
+func _on_tribe_picker_item_selected(index):
+	$"HBoxContainer/SubViewportContainer/SubViewport/GeneralIdleAnim-picker".selected_idle = index

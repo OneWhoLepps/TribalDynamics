@@ -48,5 +48,4 @@ func _on_return_to_main_pressed():
 	get_tree().change_scene_to_file(Constants.MAIN_SCENE_PATH)
 
 func _on_tribe_picker_item_selected(index):
-	print(GameManager.TribeEnum.find_key(index))
 	$"HBoxContainer/SubViewportContainer/SubViewport/GeneralIdleAnim-picker".selected_idle = index
