@@ -10,6 +10,7 @@ signal player_modified
 signal game_state_changed
 signal game_manager_ready_toggled(toggled, id)
 signal player_left_lobby(leaver_id: int, name: String)
+signal player_tribe_changed(id, tribe)
 
 enum TribeEnum { BARBARIAN, KNIGHT, VAMPIRE, SNAIL }
 var tribe_enum: Array[Variant] = [TribeEnum.BARBARIAN, TribeEnum.KNIGHT, TribeEnum.VAMPIRE, TribeEnum.SNAIL]
@@ -230,3 +231,32 @@ func restart_game():
 	var overlay := new_game_scene.get_node("OverlayContainer")
 	if overlay:
 		overlay.visible = false
+
+@rpc("any_peer", "reliable")
+func request_tribe_change(tribe: int) -> void:
+	if _is_not_server():
+		return
+
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = Constants.HOST_ID   # host called it locally
+
+	var valid := players.has(sender) \
+		and tribe >= 0 and tribe < tribe_names.size() \
+		and game_state == GameStates.LOBBY
+	if not valid:
+		# Snap the requester back to what the host believes their tribe is
+		if players.has(sender):
+			update_tribe_ui.rpc_id(sender, sender, players[sender].tribe)
+		return
+
+	players[sender].tribe = tribe
+	sync_all_player_dictionaries()       # keeps everyone's dict correct
+	update_tribe_ui.rpc(sender, tribe)   # tells every lobby to update that entry
+
+# Host -> everyone, including the host itself via call_local.
+@rpc("authority", "call_local", "reliable")
+func update_tribe_ui(id: int, tribe: int) -> void:
+	if players.has(id):
+		players[id].tribe = tribe
+	emit_signal("player_tribe_changed", id, tribe)
