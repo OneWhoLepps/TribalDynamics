@@ -76,5 +76,5 @@ animations = [{
 
 [node name="FightCloud-Sprite" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_ym256")
-frame_progress = 0.812653
+frame_progress = 0.354991
 script = ExtResource("2_lvjmx")

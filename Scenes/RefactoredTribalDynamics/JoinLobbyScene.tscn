@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://x1k43m5a5iao"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/JoinLobbyScene.gd" id="1_ug6yt"]
-[ext_resource type="Texture2D" uid="uid://c7n84seylhidx" path="res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral.png" id="2_pt15x"]
+[ext_resource type="PackedScene" uid="uid://btvehvw0fkxi0" path="res://Assets/GeneralIdleAnim-Picker/GeneralIdleAnim-Picker.tscn" id="3_m5b6m"]
 
 [node name="JoinLobbyScene" type="Control"]
 layout_mode = 3
@@ -30,9 +30,17 @@ size_flags_horizontal = 3
 [node name="TribePicker" type="OptionButton" parent="HBoxContainer"]
 layout_mode = 2
 
-[node name="TribePreview" type="TextureRect" parent="HBoxContainer"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(48, 40)
 layout_mode = 2
-texture = ExtResource("2_pt15x")
+
+[node name="SubViewport" type="SubViewport" parent="HBoxContainer/SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(48, 40)
+render_target_update_mode = 4
+
+[node name="GeneralIdleAnim-picker" parent="HBoxContainer/SubViewportContainer/SubViewport" instance=ExtResource("3_m5b6m")]
+position = Vector2(2, 0)
 
 [node name="Label" type="Label" parent="HBoxContainer"]
 layout_mode = 2

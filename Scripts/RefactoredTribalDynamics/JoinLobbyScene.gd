@@ -4,7 +4,6 @@ extends Control
 @onready var tribe_picker = $HBoxContainer/TribePicker
 @onready var ip_input = $HBoxContainer/IPInput
 @onready var join_button = $HBoxContainer/JoinButton
-@onready var tribe_preview = $HBoxContainer/TribePreview
 
 func _ready():
 	for name in GameManager.tribe_names:
@@ -49,5 +48,5 @@ func _on_return_to_main_pressed():
 	get_tree().change_scene_to_file(Constants.MAIN_SCENE_PATH)
 
 func _on_tribe_picker_item_selected(index):
-	var tribe = GameManager.tribe_enum[index]
-	tribe_preview.texture = GameManager.TRIBE_GENERAL_TEXTURES[tribe]
+	print(GameManager.TribeEnum.find_key(index))
+	$"HBoxContainer/SubViewportContainer/SubViewport/GeneralIdleAnim-picker".selected_idle = index

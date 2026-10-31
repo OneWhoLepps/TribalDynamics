@@ -1,7 +1,7 @@
 extends Node2D
 
-# 1. Create a dropdown menu in the Inspector matching your sprite names
-@export_enum("None", "BarbGeneral", "KnightGeneral", "VampGeneral", "SnailGeneral") var selected_idle: String = "None":
+# 1. Map string names to your GameManager integer enum values explicitly
+@export var selected_idle: int = GameManager.TribeEnum.BARBARIAN:
 	set(value):
 		selected_idle = value
 		# Automatically update visibility whenever you change the choice in the Inspector
@@ -9,10 +9,10 @@ extends Node2D
 			_update_sprite_visibility()
 
 # 2. Get onready references to your 4 overlapping AnimatedSprite2D nodes
-@onready var sprite_1: AnimatedSprite2D = $"BarbGeneral-idle"
-@onready var sprite_2: AnimatedSprite2D = $"KnightGeneral-idle"
-@onready var sprite_3: AnimatedSprite2D = $"VampGeneral-idle"
-@onready var sprite_4: AnimatedSprite2D = $"SnailGeneral-idle"
+@onready var sprite_1: Node2D = $"BarbGeneral-idle"
+@onready var sprite_2: Node2D = $"KnightGeneral-idle"
+@onready var sprite_3: Node2D = $"VampGeneral-idle"
+@onready var sprite_4: Node2D = $"SnailGeneral-idle"
 
 func _ready() -> void:
 	# Ensure the correct sprite is visible when the game starts
@@ -25,17 +25,13 @@ func _update_sprite_visibility() -> void:
 	sprite_3.visible = false
 	sprite_4.visible = false
 	
-	# Turn on the chosen sprite and play its animation
+	# FIX: Match against the actual enum values (integers) instead of strings!
 	match selected_idle:
-		"BarbGeneral":
+		GameManager.TribeEnum.BARBARIAN:
 			sprite_1.visible = true
-			sprite_1.play()
-		"KnightGeneral":
+		GameManager.TribeEnum.KNIGHT:
 			sprite_2.visible = true
-			sprite_2.play()
-		"VampGeneral":
+		GameManager.TribeEnum.VAMPIRE:
 			sprite_3.visible = true
-			sprite_3.play()
-		"SnailGeneral":
+		GameManager.TribeEnum.SNAIL:
 			sprite_4.visible = true
-			sprite_4.play()
