@@ -87,8 +87,8 @@ func set_game_state(state: int):
 	game_state = state
 	emit_signal("game_state_changed")
 
-func request_register_player(id: int, playerName: String, tribe_enum: int):
-	add_player(id, playerName, tribe_enum)
+func request_register_player(id: int, playerName: String, tribe: int):
+	add_player(id, playerName, tribe)
 	var join_message: String = "%s has joined." % [playerName]
 	add_chat_message(join_message)
 	sync_all_player_dictionaries()
@@ -112,10 +112,13 @@ func remove_player_notify_clients(player):
 #this is marked any_peer so that CLIENTS can call this w/ rpc_id(1)
 #which means the host will be running this
 @rpc("any_peer")
-func client_request_register_player(id: int, playerName: String, tribe_enum: int) -> void:
+func client_request_register_player(id: int, playerName: String, tribe: int) -> void:
 	if _is_not_server():
 		return
-	request_register_player(id, playerName, tribe_enum)
+	if tribe < 0 or tribe >= tribe_names.size():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	request_register_player(sender if sender != 0 else id, playerName, tribe)
 
 #this is marked any_peer so that CLIENTS can call this w/ rpc_id(1)
 #which means the host will be running this

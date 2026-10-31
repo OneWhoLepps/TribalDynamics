@@ -1,12 +1,14 @@
 extends Control
 
 var player_id: int
+var tribe: int = 0
 signal leave_pressed(id: int)
 signal ready_pressed(id: int)
 
 func setup(entry_data: Dictionary):
 	player_id = entry_data["id"]
 	set_ready_visual(entry_data["ready"], player_id)
+	tribe = entry_data["tribe"]
 	$HBoxContainer/PlayerName.text = entry_data["name"]
 	$HBoxContainer/ReadyToggle.button_pressed = entry_data["ready"]
 
@@ -31,6 +33,8 @@ func _ready():
 	GameManager.connect("game_manager_ready_toggled", Callable(self, "set_ready_visual"))
 	for name in GameManager.tribe_names:
 		$HBoxContainer/TribePicker.add_item(name)
+	$HBoxContainer/TribePicker.select(tribe)
+	$"HBoxContainer/SubViewportContainer/SubViewport/GeneralIdleAnim-picker".selected_idle = tribe
 	pass # Replace with function body.
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -33,8 +33,15 @@ func _on_JoinButton_pressed():
 		GameManager.set_multiplayer_authority(1)
 		#after peer is connected, ask the server to register the joining player
 		GameManager.client_request_register_player.rpc_id(Constants.HOST_ID, multiplayer.get_unique_id(), name, GameManager.TribeEnum.values()[tribe_index])
-		#put in some arbitrary wait so that request and sync back works
-		await get_tree().create_timer(0.1).timeout
+		# Wait for the host's sync
+		var my_id := multiplayer.get_unique_id()
+		var tries := 0
+		while not GameManager.players.has(my_id) and tries < 50:   # ~5s timeout
+			await get_tree().create_timer(0.1).timeout
+			tries += 1
+		if not GameManager.players.has(my_id):
+			print("Registration failed or timed out.")
+			return
 		get_tree().change_scene_to_file(Constants.LOBBY_SCENE_PATH)
 	)
 

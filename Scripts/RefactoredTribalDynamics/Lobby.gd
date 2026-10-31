@@ -31,6 +31,9 @@ func _introduce_player_list():
 	turn_off_start_game.rpc_id(Constants.HOST_ID)
 
 func add_player_to_player_list(player):
+	for child in player_list.get_children():
+		if child.has_method("get_player_id") and child.get_player_id() == player.id:
+			return
 	var player_entry_scene = preload("res://Scenes/RefactoredTribalDynamics/PlayerEntryInLobby.tscn")
 	var entry = player_entry_scene.instantiate()
 	entry.setup(player)
