@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://btvehvw0fkxi0"]
+[gd_scene load_steps=5 format=3 uid="uid://btvehvw0fkxi0"]
 
 [ext_resource type="PackedScene" uid="uid://cwtijk6a5jivs" path="res://Assets/Barbarian/Animations/BarbGeneral-Idle.tscn" id="1_1bfr3"]
 [ext_resource type="PackedScene" uid="uid://c5hptt5ef61w0" path="res://Assets/Knight/Animations/KnightGeneral-idle.tscn" id="2_tb1yv"]
 [ext_resource type="PackedScene" uid="uid://b6u03g4hwp0rn" path="res://Assets/Vampire/Animations/VampGeneral-Idle.tscn" id="3_n16et"]
+[ext_resource type="PackedScene" uid="uid://cxxpbpmb5s6ti" path="res://Assets/Snail/Animations/SnailGeneral-idle.tscn" id="4_fs6tn"]
 
 [node name="GeneralIdleAnim-picker" type="Node2D"]
 
@@ -14,3 +15,6 @@ position = Vector2(53, 15)
 
 [node name="VampGeneral-idle" parent="." instance=ExtResource("3_n16et")]
 position = Vector2(22, 47)
+
+[node name="SnailGeneral-idle" parent="." instance=ExtResource("4_fs6tn")]
+position = Vector2(53, 57)

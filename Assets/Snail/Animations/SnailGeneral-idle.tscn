@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://cxxpbpmb5s6ti"]
+
+[ext_resource type="Texture2D" uid="uid://dmyjwbtkex2hn" path="res://Assets/Snail/Tribal_Dynamics_SnailGeneral.png" id="1_ba742"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_682ud"]
+atlas = ExtResource("1_ba742")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_477r7"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_682ud")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="SnailGeneral-idle" type="Node2D"]
+
+[node name="SnailGeneral" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_477r7")
