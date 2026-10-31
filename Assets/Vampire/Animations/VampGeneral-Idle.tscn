@@ -1,7 +1,7 @@
 [gd_scene load_steps=12 format=3 uid="uid://b6u03g4hwp0rn"]
 
 [ext_resource type="Texture2D" uid="uid://c4lbysch3785a" path="res://Assets/Vampire/Tribal_Dynamics_VampGeneralAnimationIdle.png" id="1_7fabw"]
-[ext_resource type="Script" path="res://Assets/Vampire/Animations/VampGeneral.gd" id="2_wwgib"]
+[ext_resource type="Script" path="res://Assets/SharedScripts/DefaultAnimationPlayer.gd" id="2_jmton"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b7gxw"]
 atlas = ExtResource("1_7fabw")
@@ -71,5 +71,5 @@ animations = [{
 
 [node name="VampGeneral" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_wavjr")
-frame_progress = 0.392851
-script = ExtResource("2_wwgib")
+frame_progress = 0.0246044
+script = ExtResource("2_jmton")

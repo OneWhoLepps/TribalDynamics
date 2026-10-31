@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://cwtijk6a5jivs"]
 
 [ext_resource type="Texture2D" uid="uid://di26wgalpe3o3" path="res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral-Sheet.png" id="1_co7se"]
-[ext_resource type="Script" path="res://Assets/Barbarian/Animations/BarbGeneral.gd" id="2_mcga8"]
+[ext_resource type="Script" path="res://Assets/SharedScripts/DefaultAnimationPlayer.gd" id="2_84wpq"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pga33"]
 atlas = ExtResource("1_co7se")
@@ -37,4 +37,4 @@ animations = [{
 [node name="BarbGeneral" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_bg6yh")
 frame_progress = 0.143921
-script = ExtResource("2_mcga8")
+script = ExtResource("2_84wpq")

@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://b767mf564n3e0"]
+
+[ext_resource type="Texture2D" uid="uid://cvca36bivewme" path="res://Assets/Snail/Tribal_Dynamics_Snail_Unit.png" id="1_03hb5"]
+[ext_resource type="Script" path="res://Assets/SharedScripts/DefaultAnimationPlayer.gd" id="2_3h2kw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v0528"]
+atlas = ExtResource("1_03hb5")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qaoul"]
+atlas = ExtResource("1_03hb5")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_yhhh6"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v0528")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qaoul")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
+
+[node name="SnailUnit" type="Node2D"]
+
+[node name="Snail" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_yhhh6")
+frame_progress = 0.0607531
+script = ExtResource("2_3h2kw")

@@ -1,0 +1,32 @@
+[gd_scene load_steps=6 format=3 uid="uid://bd5iae3u4a4sa"]
+
+[ext_resource type="Texture2D" uid="uid://cqpfn77rw1www" path="res://Assets/Vampire/Tribal_Dynamics_VampUnit.png" id="1_dyeq6"]
+[ext_resource type="Script" path="res://Assets/SharedScripts/DefaultAnimationPlayer.gd" id="2_tvnjw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3dhub"]
+atlas = ExtResource("1_dyeq6")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ki7tm"]
+atlas = ExtResource("1_dyeq6")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_g712j"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3dhub")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ki7tm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 4.0
+}]
+
+[node name="VampUnit" type="Node2D"]
+
+[node name="Vamp" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_g712j")
+script = ExtResource("2_tvnjw")
