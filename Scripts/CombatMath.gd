@@ -38,12 +38,16 @@ func decide_victor(player1Lane, player2Lane):
 			p2_hp_change -= 1
 		elif p2_roll > p1_roll:
 			p1_hp_change -= 1
-		# Tie does nothing
 
-	return [
-		p1_hp_change,
-		p2_hp_change
-	]
+	#Apply net damage process.
+	#If each player were to lose the same life, they lose none
+	var d1 = -p1_hp_change
+	var d2 = -p2_hp_change
+	if d1 > d2:
+		return [-(d1 - d2), 0]
+	elif d2 > d1:
+		return [0, -(d2 - d1)]
+	return [0, 0]
 
 func roll_combat_dice(player1Count: int, player2Count: int) -> Dictionary:
 	if player1Count == 0 and player2Count == 0:
