@@ -20,6 +20,12 @@ const TRIBE_GENERAL_TEXTURES = {
 	GameManager.TribeEnum.VAMPIRE:   preload("res://Assets/Vampire/Tribal_Dynamics_VampGeneral.png"),
 	GameManager.TribeEnum.SNAIL:     preload("res://Assets/Snail/Tribal_Dynamics_SnailGeneral.png"),
 }
+const TRIBE_GENERAL_ANIMATION_SHEETS = {
+	GameManager.TribeEnum.BARBARIAN: preload("res://Assets/Barbarian/Tribal_Dynamics_BarbGeneral-Sheet.png"),
+	GameManager.TribeEnum.KNIGHT:    preload("res://Assets/Knight/Tribal_Dynamics_KnightGeneral_AnimationsIdle.png"),
+	GameManager.TribeEnum.VAMPIRE:   preload("res://Assets/Vampire/Tribal_Dynamics_VampGeneralAnimationIdle.png"),
+	GameManager.TribeEnum.SNAIL:     preload("res://Assets/Snail/Tribal_Dynamics_SnailGeneral.png"),
+}
 enum GameStates { LOBBY, INGAME, ENDED }
 
 var players: Dictionary = {}

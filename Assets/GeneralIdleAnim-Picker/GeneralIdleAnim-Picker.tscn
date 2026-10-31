@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://btvehvw0fkxi0"]
+
+[ext_resource type="PackedScene" uid="uid://cwtijk6a5jivs" path="res://Assets/Barbarian/Animations/BarbGeneral-Idle.tscn" id="1_1bfr3"]
+
+[node name="GeneralIdleAnim-picker" type="Node2D"]
+
+[node name="BarbGeneral-idle" parent="." instance=ExtResource("1_1bfr3")]
+position = Vector2(14, 13)

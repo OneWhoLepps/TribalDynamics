@@ -1,0 +1,29 @@
+[gd_resource type="TileSet" load_steps=4 format=3 uid="uid://cys0i87qgnlo0"]
+
+[ext_resource type="Texture2D" uid="uid://dykswq60h4cob" path="res://Assets/Background/Tribal_Dynamics_BG-Sheet.png" id="1_065j0"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_f7vgj"]
+texture = ExtResource("1_065j0")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_25lhs"]
+texture = ExtResource("1_065j0")
+
+[resource]
+sources/0 = SubResource("TileSetAtlasSource_f7vgj")
+sources/1 = SubResource("TileSetAtlasSource_25lhs")

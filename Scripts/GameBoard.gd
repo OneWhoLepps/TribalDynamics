@@ -9,7 +9,13 @@ const GENERAL_POSITIONS = {
 }
 
 const GENERAL_SCALE = Vector2(2.0, 2.0)
-
+# Per-tribe idle animation config: [frame_count, frame_width, frame_height]
+const GENERAL_ANIM_INFO = {
+	"barb": {"frames": 3, "frame_w": 32, "frame_h": 32},
+	# add other tribes here as you get their sheets, e.g.:
+	# "forest": {"frames": 4, "frame_w": 32, "frame_h": 32},
+}
+const GENERAL_ANIM_FPS = 6.0
 # --- Heart display ---
 # Atlas regions inside Tribal_Dynamics_UIAssets.png (8×8 px sprites)
 const UI_ASSETS_PATH    = "res://Assets/Fonts/Tribal_Dynamics_UIAssets.png"
@@ -62,14 +68,32 @@ func _place_generals():
 				break
 		if player == null:
 			continue
+		var tribe = GameManager.tribe_names[player.tribe]
+		var sheet = GameManager.TRIBE_GENERAL_ANIMATION_SHEETS[player.tribe]
 
-		var tribe = player.tribe
-		var sprite = Sprite2D.new()
-		sprite.texture  = GameManager.TRIBE_GENERAL_TEXTURES[tribe]
-		sprite.position = GENERAL_POSITIONS[seat]
-		sprite.scale    = GENERAL_SCALE
-		sprite.z_index  = 0
-		add_child(sprite)
+		var anim_sprite = AnimatedSprite2D.new()
+		anim_sprite.sprite_frames = _build_idle_frames(sheet, tribe)
+		anim_sprite.animation = "idle"
+		anim_sprite.play()
+		anim_sprite.position = GENERAL_POSITIONS[seat]
+		anim_sprite.scale    = GENERAL_SCALE
+		anim_sprite.z_index  = 0
+		add_child(anim_sprite)
+
+func _build_idle_frames(sheet: Texture2D, tribe: String) -> SpriteFrames:
+	var info = GENERAL_ANIM_INFO.get(tribe, {"frames": 1, "frame_w": sheet.get_width(), "frame_h": sheet.get_height()})
+	var frames = SpriteFrames.new()
+	frames.add_animation("idle")
+	frames.set_animation_speed("idle", GENERAL_ANIM_FPS)
+	frames.set_animation_loop("idle", true)
+
+	for i in range(info["frames"]):
+		var atlas = AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(i * info["frame_w"], 0, info["frame_w"], info["frame_h"])
+		frames.add_frame("idle", atlas)
+
+	return frames
 
 func _setup_heart_displays():
 	var texture = load(UI_ASSETS_PATH)

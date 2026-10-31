@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://csu3gmiv2ib54"]
+[gd_scene load_steps=6 format=3 uid="uid://csu3gmiv2ib54"]
 
 [ext_resource type="Script" path="res://Scripts/RefactoredTribalDynamics/MainScene.gd" id="1_hohkm"]
+[ext_resource type="PackedScene" uid="uid://btvehvw0fkxi0" path="res://Assets/GeneralIdleAnim-Picker/GeneralIdleAnim-Picker.tscn" id="2_k6uko"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xpesv"]
 bg_color = Color(0, 0, 0, 1)
@@ -53,6 +54,9 @@ label_settings = SubResource("LabelSettings_a4rm1")
 z_index = -1
 position = Vector2(576, 324)
 scale = Vector2(1.59116, 0.576512)
+
+[node name="GeneralIdleAnim-picker" parent="." instance=ExtResource("2_k6uko")]
+position = Vector2(198, 584)
 
 [connection signal="pressed" from="HostButton" to="." method="_on_HostButton_pressed"]
 [connection signal="pressed" from="JoinButton" to="." method="_on_JoinButton_pressed"]
