@@ -68,32 +68,17 @@ func _place_generals():
 				break
 		if player == null:
 			continue
-		var tribe = GameManager.tribe_names[player.tribe]
-		var sheet = GameManager.TRIBE_GENERAL_ANIMATION_SHEETS[player.tribe]
 
-		var anim_sprite = AnimatedSprite2D.new()
-		anim_sprite.sprite_frames = _build_idle_frames(sheet, tribe)
-		anim_sprite.animation = "idle"
-		anim_sprite.play()
-		anim_sprite.position = GENERAL_POSITIONS[seat]
-		anim_sprite.scale    = GENERAL_SCALE
-		anim_sprite.z_index  = 0
-		add_child(anim_sprite)
+		var scene: PackedScene = GameManager.TRIBE_GENERAL_IDLE_SCENES.get(player.tribe)
+		if scene == null:
+			push_warning("No general scene for tribe %s" % player.tribe)
+			continue
 
-func _build_idle_frames(sheet: Texture2D, tribe: String) -> SpriteFrames:
-	var info = GENERAL_ANIM_INFO.get(tribe, {"frames": 1, "frame_w": sheet.get_width(), "frame_h": sheet.get_height()})
-	var frames = SpriteFrames.new()
-	frames.add_animation("idle")
-	frames.set_animation_speed("idle", GENERAL_ANIM_FPS)
-	frames.set_animation_loop("idle", true)
-
-	for i in range(info["frames"]):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = sheet
-		atlas.region = Rect2(i * info["frame_w"], 0, info["frame_w"], info["frame_h"])
-		frames.add_frame("idle", atlas)
-
-	return frames
+		var general = scene.instantiate()
+		general.position = GENERAL_POSITIONS[seat]
+		general.scale = GENERAL_SCALE
+		general.z_index = 0
+		add_child(general)
 
 func _setup_heart_displays():
 	var texture = load(UI_ASSETS_PATH)
