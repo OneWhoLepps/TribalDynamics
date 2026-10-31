@@ -9,27 +9,23 @@ const GENERAL_POSITIONS = {
 }
 
 const GENERAL_SCALE = Vector2(2.0, 2.0)
-# Per-tribe idle animation config: [frame_count, frame_width, frame_height]
-const GENERAL_ANIM_INFO = {
-	"barb": {"frames": 3, "frame_w": 32, "frame_h": 32},
-	# add other tribes here as you get their sheets, e.g.:
-	# "forest": {"frames": 4, "frame_w": 32, "frame_h": 32},
-}
-const GENERAL_ANIM_FPS = 6.0
+
 # --- Heart display ---
 # Atlas regions inside Tribal_Dynamics_UIAssets.png (8×8 px sprites)
-const UI_ASSETS_PATH    = "res://Assets/Fonts/Tribal_Dynamics_UIAssets.png"
+const UI_ASSETS_PATH     = "res://Assets/Fonts/Tribal_Dynamics_UIAssets.png"
 const HEART_FULL_REGION  = Rect2(24, 40, 8, 8)
 const HEART_EMPTY_REGION = Rect2(24, 48, 8, 8)
-const HEART_SCALE        = Vector2(3.0, 3.0)  # renders each heart as 24×24 px
-const HEART_SPACING      = 26                  # px between heart origins
-const HEARTS_COUNT       = 5                   # hearts visible per player
-const MAX_HP             = 10                  # matches GameManager.startingHealth
+const HEART_HALF_REGION  = Rect2(24, 40, 4, 8)   # left half of the full heart
+const HEART_SCALE        = Vector2(3.0, 3.0)     # renders each heart as 24×24 px
+const HEART_SPACING      = 26                    # px between heart origins
+const HEARTS_COUNT       = 5                     # hearts visible per player
+const MAX_HP             = 10                    # matches GameManager.startingHealth
+const HP_PER_HEART       = MAX_HP / HEARTS_COUNT # 2
 
 # Top seats: hearts above name label (name label world y ≈ 63–86)
 # Bottom seats: hearts below name label (name label world y ≈ 650–673)
 const HEART_ORIGINS = {
-	1: Vector2(254,14),    # top-left  → extends right, above name
+	1: Vector2(254, 14),    # top-left  → extends right, above name
 	2: Vector2(254, 696),   # bot-left  → extends right, below name
 	3: Vector2(1000, 696),  # bot-right → extends left,  below name
 	4: Vector2(1000, 14),   # top-right → extends left,  above name
@@ -46,9 +42,20 @@ void fragment() {
 	COLOR = d < 0.12 ? ocean_color : c;
 }"
 
+# --- Combat animation ---
+const FIGHT_CLOUD_SCENE = preload("res://Assets/VisualEffects/FightCloud/FightCloud.tscn")
+const UNIT_SCALE      = Vector2(2.0, 2.0)
+const UNIT_MOVE_SPEED = 150.0   # px per second
+const V_SPACING_SIDE  = 22.0    # how wide the V fans out
+const V_SPACING_BACK  = 18.0    # how far each row trails behind
+const CLOUD_LOOPS     = 1
+
 var state: BoardState
 var sounds: Dictionary
-var heart_sprites: Dictionary = {}  # seat → Array[Sprite2D]
+var heart_sprites: Dictionary = {}       # seat → Array[Sprite2D]
+var heart_half_sprites: Dictionary = {}  # seat → Array[Sprite2D]
+var combat_in_progress := false
+var _battles_pending := 0
 
 func _ready():
 	sounds = { "lose": preload("res://Assets/SoundBytes/wet-fart-meme.mp3") }
@@ -89,6 +96,7 @@ func _setup_heart_displays():
 	for seat in HEART_ORIGINS:
 		get_hp_label(seat).hide()
 		heart_sprites[seat] = []
+		heart_half_sprites[seat] = []
 		var origin = HEART_ORIGINS[seat]
 		var dir    = HEART_DIR[seat]
 		for i in range(HEARTS_COUNT):
@@ -107,15 +115,42 @@ func _setup_heart_displays():
 			add_child(sprite)
 			heart_sprites[seat].append(sprite)
 
+			# Half-heart overlay (left half of the full heart, drawn on top of an empty heart)
+			var half_atlas    = AtlasTexture.new()
+			half_atlas.atlas  = texture
+			half_atlas.region = HEART_HALF_REGION
+			var half          = Sprite2D.new()
+			half.texture      = half_atlas
+			half.centered     = false
+			# align its top-left with the full heart's top-left (heart is 8x8, centered)
+			half.position     = sprite.position - Vector2(4, 4) * HEART_SCALE.x
+			half.scale        = HEART_SCALE
+			half.z_index      = 3
+			half.material     = mat
+			half.visible      = false
+			add_child(half)
+			heart_half_sprites[seat].append(half)
+
 func _update_hearts(seat: int, hp: int):
 	if not heart_sprites.has(seat):
 		return
-	var full_count = roundi(clampi(hp, 0, MAX_HP) * HEARTS_COUNT / float(MAX_HP))
+	hp = clampi(hp, 0, MAX_HP)
 	var sprites = heart_sprites[seat]
+	var halves = heart_half_sprites[seat]
 	for i in range(sprites.size()):
 		var atlas = sprites[i].texture as AtlasTexture
-		if atlas:
-			atlas.region = HEART_FULL_REGION if i < full_count else HEART_EMPTY_REGION
+		if atlas == null:
+			continue
+		var remaining = hp - i * HP_PER_HEART   # HP that belongs to this heart
+		if remaining >= HP_PER_HEART:
+			atlas.region = HEART_FULL_REGION
+			halves[i].visible = false
+		elif remaining == 1:
+			atlas.region = HEART_EMPTY_REGION   # empty heart underneath
+			halves[i].visible = true            # half-fill on top
+		else:
+			atlas.region = HEART_EMPTY_REGION
+			halves[i].visible = false
 
 # --- Node helpers ---
 
@@ -248,7 +283,9 @@ func _on_restart_game_button_pressed():
 
 # --- Combat (host-only logic) ---
 
-func resolve_combat():
+# Rolls the dice ONCE on the host and describes each fight. Clients only replay the result.
+func build_battles() -> Array:
+	var battles = []
 	var seats = GameManager.players.values().map(func(p): return p.playerTableAssignment)
 	for i in range(seats.size()):
 		for j in range(i + 1, seats.size()):
@@ -258,9 +295,24 @@ func resolve_combat():
 				continue
 			var units_a = state.lane_units.get(id_a, {}).get(id_b, 0)
 			var units_b = state.lane_units.get(id_b, {}).get(id_a, 0)
+			if units_a == 0 and units_b == 0:
+				continue
+
 			var results = CombatMath.decide_victor(str(units_a), str(units_b))
-			state.player_hp[id_a] += results[0]
-			state.player_hp[id_b] += results[1]
+
+			battles.append({
+				"a": id_a, "b": id_b,
+				"units_a": units_a, "units_b": units_b,
+				"hp_a": results[0], "hp_b": results[1],   # these are 0 or negative
+			})
+			print("battle ", id_a, " vs ", id_b, " units ", units_a, "/", units_b,
+				" hp ", results[0], "/", results[1])
+	return battles
+
+func apply_combat_results(battles: Array):
+	for b in battles:
+		state.player_hp[b.a] += b.hp_a
+		state.player_hp[b.b] += b.hp_b
 
 func check_deaths():
 	var all_dead = true
@@ -301,6 +353,109 @@ func unlock_turn_controls(player_id: int):
 	enable_end_turn_button.rpc_id(player_id)
 	enable_reset_button.rpc_id(player_id)
 
+# --- Combat animation (runs on every peer) ---
+
+# Returns when every battle has finished.
+func _play_battles(battles: Array) -> void:
+	_battles_pending = battles.size()
+	for b in battles:
+		_run_battle(b)   # intentionally not awaited, so all lanes play in parallel
+	while _battles_pending > 0:
+		await get_tree().process_frame
+
+func _run_battle(b: Dictionary) -> void:
+	await _run_battle_inner(b)
+	_battles_pending -= 1
+
+func _run_battle_inner(b: Dictionary) -> void:
+	var pa = GameManager.players[b.a]
+	var pb = GameManager.players[b.b]
+	var pos_a: Vector2 = GENERAL_POSITIONS[pa.playerTableAssignment]
+	var pos_b: Vector2 = GENERAL_POSITIONS[pb.playerTableAssignment]
+	var mid = (pos_a + pos_b) / 2.0
+	var fought = b.units_a > 0 and b.units_b > 0
+
+	# Phase 1 + 2: armies meet in the middle, despawn, fight cloud plays.
+	# Both counts are > 0 here and both sides travel the same distance,
+	# so awaiting the second march also covers the first.
+	if fought:
+		_march(pa.tribe, b.units_a, pos_a, mid)
+		await _march(pb.tribe, b.units_b, pos_b, mid)
+		await _play_cloud(mid)
+
+	# Phase 3: each HP lost = one enemy unit reaches your general.
+	var through_a = -b.hp_b   # A's units that get through to B's general
+	var through_b = -b.hp_a   # B's units that get through to A's general
+	var start_a = mid if fought else pos_a
+	var start_b = mid if fought else pos_b
+
+	# Per-battle counter, so parallel battles don't overwrite each other.
+	# Waits for BOTH marches, even if one has zero units.
+	b["marches_pending"] = 2
+	_march_tracked(b, pa.tribe, through_a, start_a, pos_b)
+	_march_tracked(b, pb.tribe, through_b, start_b, pos_a)
+	while b["marches_pending"] > 0:
+		await get_tree().process_frame
+
+func _march_tracked(b: Dictionary, tribe: int, count: int, from: Vector2, to: Vector2) -> void:
+	await _march(tribe, count, from, to)
+	b["marches_pending"] -= 1
+
+# Spawns `count` units in a V (tip leading) and walks them from -> to, then frees them.
+func _march(tribe: int, count: int, from: Vector2, to: Vector2) -> void:
+	var scene: PackedScene = GameManager.TRIBE_UNIT_SCENES.get(tribe)
+	if scene == null or count <= 0:
+		return
+	var dir = (to - from).normalized()
+	var perp = Vector2(-dir.y, dir.x)
+	var duration = maxf(from.distance_to(to) / UNIT_MOVE_SPEED, 0.01)
+	var units = []
+	var tween = create_tween().set_parallel(true)
+
+	for i in range(count):
+		var row = floori((i + 1) / 2.0)                       # 0,1,1,2,2,3,3...
+		var side = 0 if i == 0 else (1 if i % 2 == 1 else -1) # tip, then alternate sides
+		var offset = -dir * row * V_SPACING_BACK + perp * side * row * V_SPACING_SIDE
+
+		var u = scene.instantiate()
+		u.scale = UNIT_SCALE
+		u.z_index = 1
+		u.position = from + offset
+		add_child(u)
+		units.append(u)
+		tween.tween_property(u, "position", to + offset, duration)
+
+	await tween.finished
+	for u in units:
+		u.queue_free()
+
+func _play_cloud(pos: Vector2) -> void:
+	var cloud = FIGHT_CLOUD_SCENE.instantiate()
+	cloud.position = pos
+	cloud.z_index = 1
+	cloud.scale = Vector2(3.0, 3.0)
+	add_child(cloud)
+
+	var wait = 1.0   # fallback if we can't find an AnimatedSprite2D
+	var sprite = _find_animated_sprite(cloud)
+	if sprite:
+		sprite.play()
+		var frames = sprite.sprite_frames
+		var fps = frames.get_animation_speed(sprite.animation)
+		if fps > 0:
+			wait = (frames.get_frame_count(sprite.animation) / fps) * CLOUD_LOOPS
+	await get_tree().create_timer(wait).timeout
+	cloud.queue_free()
+
+func _find_animated_sprite(n: Node) -> AnimatedSprite2D:
+	if n is AnimatedSprite2D:
+		return n
+	for c in n.get_children():
+		var found = _find_animated_sprite(c)
+		if found:
+			return found
+	return null
+
 # --- RPCs ---
 
 # Unit placement — clients send intent to host, host validates and broadcasts new state.
@@ -308,6 +463,7 @@ func unlock_turn_controls(player_id: int):
 @rpc("any_peer", "call_local")
 func request_place_unit(attacker_id: int, target_id: int):
 	if GameManager._is_not_server(): return
+	if combat_in_progress: return
 	if not GameManager.players.has(attacker_id): return
 	if attacker_id in state.dead_player_ids: return
 	if state.stored_units.get(attacker_id, 0) <= 0: return
@@ -318,6 +474,7 @@ func request_place_unit(attacker_id: int, target_id: int):
 @rpc("any_peer", "call_local")
 func request_remove_unit(attacker_id: int, target_id: int):
 	if GameManager._is_not_server(): return
+	if combat_in_progress: return
 	if not GameManager.players.has(attacker_id): return
 	if state.lane_units.get(attacker_id, {}).get(target_id, 0) <= 0: return
 	state.lane_units[attacker_id][target_id] -= 1
@@ -327,6 +484,7 @@ func request_remove_unit(attacker_id: int, target_id: int):
 @rpc("any_peer", "call_local")
 func request_reset_units(player_id: int):
 	if GameManager._is_not_server(): return
+	if combat_in_progress: return
 	if not GameManager.players.has(player_id): return
 	if player_id in state.dead_player_ids: return
 	for target_id in state.lane_units.get(player_id, {}):
@@ -334,14 +492,25 @@ func request_reset_units(player_id: int):
 		state.lane_units[player_id][target_id] = 0
 	sync_board_state.rpc(state.serialize())
 
+# Host -> clients only. The host plays its own copy directly so it can await it.
+@rpc("authority", "call_remote", "reliable")
+func play_combat_animations(battles: Array):
+	_play_battles(battles)
+
 @rpc("any_peer", "call_local")
 func request_end_turn(player_id: int):
 	if GameManager._is_not_server(): return
+	if combat_in_progress: return
 	if player_id in state.ended_turn_player_ids: return
 	state.ended_turn_player_ids.append(player_id)
 	lock_turn_controls(player_id)
 	if state.ended_turn_player_ids.size() == state.alive_count:
-		resolve_combat()
+		combat_in_progress = true
+		var battles = build_battles()
+		play_combat_animations.rpc(battles)   # clients start playing
+		await _play_battles(battles)          # host plays and BLOCKS until done
+
+		apply_combat_results(battles)         # hearts only change after the animation
 		check_deaths()
 		reset_all_lanes()
 		state.ended_turn_player_ids.clear()
@@ -351,6 +520,7 @@ func request_end_turn(player_id: int):
 		for pid in state.player_hp:
 			if GameManager.players.has(pid):
 				GameManager.players[pid].health = state.player_hp[pid]
+		combat_in_progress = false
 	sync_board_state.rpc(state.serialize())
 
 @rpc("authority", "call_local")
