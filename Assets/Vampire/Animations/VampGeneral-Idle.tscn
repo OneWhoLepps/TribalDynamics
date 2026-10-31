@@ -1,0 +1,75 @@
+[gd_scene load_steps=12 format=3 uid="uid://b6u03g4hwp0rn"]
+
+[ext_resource type="Texture2D" uid="uid://c4lbysch3785a" path="res://Assets/Vampire/Tribal_Dynamics_VampGeneralAnimationIdle.png" id="1_7fabw"]
+[ext_resource type="Script" path="res://Assets/Vampire/Animations/VampGeneral.gd" id="2_wwgib"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b7gxw"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hk3fl"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8hhsa"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(0, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u4h6w"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(48, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ajlxm"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(48, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4rlbm"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(0, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ueya"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tvgi3"]
+atlas = ExtResource("1_7fabw")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wavjr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b7gxw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hk3fl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8hhsa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u4h6w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ajlxm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4rlbm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ueya")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tvgi3")
+}],
+"loop": true,
+"name": &"default",
+"speed": 4.0
+}]
+
+[node name="VampGeneral-idle" type="Node2D"]
+
+[node name="VampGeneral" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_wavjr")
+frame_progress = 0.392851
+script = ExtResource("2_wwgib")
